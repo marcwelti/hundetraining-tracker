@@ -125,6 +125,8 @@
   }
   @media (max-width: 760px){ .stats-grid{ grid-template-columns: repeat(2, 1fr); } }
 
+  .stats-grid-top{ grid-template-columns: repeat(2, 1fr); max-width: 620px; }
+
   .stat-card{
     background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
     padding: 18px 18px 16px;
@@ -132,6 +134,19 @@
   .stat-card .label{ font-size: 12px; color: var(--ink-soft); font-weight: 600; text-transform: uppercase; letter-spacing: .03em; margin-bottom: 8px; }
   .stat-card .value{ font-family: var(--font-mono); font-size: 28px; font-weight: 700; color: var(--primary-dark); }
   .stat-card .value .unit{ font-size: 14px; font-weight: 500; color: var(--ink-soft); margin-left: 3px; }
+
+  .category-stats-grid{
+    display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px;
+  }
+  @media (max-width: 900px){ .category-stats-grid{ grid-template-columns: repeat(3, 1fr); } }
+  @media (max-width: 640px){ .category-stats-grid{ grid-template-columns: repeat(2, 1fr); } }
+  .cat-stat-card{
+    background: #FFFDF9; border: 1px solid var(--line); border-radius: 10px;
+    padding: 14px 14px 12px;
+  }
+  .cat-stat-value{ font-family: var(--font-mono); font-size: 22px; font-weight: 700; color: var(--primary-dark); }
+  .cat-stat-value .cat-stat-unit{ font-size: 12px; font-weight: 500; color: var(--ink-soft); margin-left: 3px; }
+  .cat-stat-label{ font-size: 12px; color: var(--ink-soft); margin-top: 4px; line-height: 1.35; }
 
   .paw-streak{ display:flex; gap: 4px; margin-top: 10px; }
   .paw-streak svg{ width: 16px; height: 16px; }
@@ -221,16 +236,16 @@ const SUPABASE_URL = "https://mtgwefeyaifzfwslvxeu.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_HjdiBOY49tGgqUG1xhPhHQ_GyAvBNq7";
 
 const CATEGORIES = [
-  { key: "sitz_platz",        label: "Sitz/Platz geübt", hint: "mind. 10–20x pro Spaziergang" },
-  { key: "hundebett",         label: "Hundebett geübt", hint: "mind. 5x" },
-  { key: "abrufen",           label: "Abrufen geübt", hint: "mind. 10–20x pro Spaziergang" },
-  { key: "fuss",              label: "Fuss geübt", hint: "mind. 3–5x pro Spaziergang" },
-  { key: "lernvideo",         label: "Lernvideo geschaut" },
-  { key: "zoomcall_aufnahme", label: "Zoomcall Aufnahme gehört" },
-  { key: "zoomcall_live",     label: "Zoomcall Live gehört" },
-  { key: "dokumente",         label: "Dokumente angeschaut/ausgefüllt" },
-  { key: "privattraining",    label: "Privattraining" },
-  { key: "gruppentraining",   label: "Gruppentraining" },
+  { key: "sitz_platz",        label: "Sitz/Platz geübt", hint: "mind. 10–20x pro Spaziergang", countLabel: "Sitz/Platz geübt", countUnit: "Tage" },
+  { key: "hundebett",         label: "Hundebett geübt", hint: "mind. 5x", countLabel: "Hundebett geübt", countUnit: "Tage" },
+  { key: "abrufen",           label: "Abrufen geübt", hint: "mind. 10–20x pro Spaziergang", countLabel: "Abrufen geübt", countUnit: "Tage" },
+  { key: "fuss",              label: "Fuss geübt", hint: "mind. 3–5x pro Spaziergang", countLabel: "Fuss geübt", countUnit: "Tage" },
+  { key: "lernvideo",         label: "Lernvideo geschaut", countLabel: "Lernvideos geschaut", countUnit: "Mal" },
+  { key: "zoomcall_aufnahme", label: "Zoomcall Aufnahme gehört", countLabel: "Zoomcall Aufnahmen gehört", countUnit: "Mal" },
+  { key: "zoomcall_live",     label: "Zoomcall Live gehört", countLabel: "Zoomcall Live gehört", countUnit: "Mal" },
+  { key: "dokumente",         label: "Dokumente angeschaut/ausgefüllt", countLabel: "Dokumente bearbeitet", countUnit: "Mal" },
+  { key: "privattraining",    label: "Privattraining", countLabel: "Privattrainings absolviert", countUnit: "Mal" },
+  { key: "gruppentraining",   label: "Gruppentraining", countLabel: "Gruppentrainings absolviert", countUnit: "Mal" },
 ];
 
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -411,14 +426,12 @@ function computeStats(){
     cursor++;
   }
 
-  const avgQuote = trainingsTage
-    ? Math.round((currentEntries.reduce((s,e) => s + countChecked(e), 0) / (trainingsTage * CATEGORIES.length)) * 100)
-    : 0;
+  const categoryCounts = {};
+  CATEGORIES.forEach(c => {
+    categoryCounts[c.key] = currentEntries.reduce((s,e) => s + (e[c.key] ? 1 : 0), 0);
+  });
 
-  const zoomcalls = currentEntries.reduce((s,e) =>
-    s + (e.zoomcall_aufnahme ? 1 : 0) + (e.zoomcall_live ? 1 : 0), 0);
-
-  return { trainingsTage, streak, avgQuote, zoomcalls };
+  return { trainingsTage, streak, categoryCounts };
 }
 
 function renderContent(){
@@ -428,7 +441,7 @@ function renderContent(){
 
   const content = document.getElementById("content");
   content.innerHTML = `
-    <div class="stats-grid">
+    <div class="stats-grid stats-grid-top">
       <div class="stat-card">
         <div class="label">Trainingstage</div>
         <div class="value">${stats.trainingsTage}<span class="unit">Tage</span></div>
@@ -438,15 +451,13 @@ function renderContent(){
         <div class="value">${stats.streak}<span class="unit">Tage in Folge</span></div>
         <div class="paw-streak">${renderPawStreak(stats.streak)}</div>
       </div>
-      <div class="stat-card">
-        <div class="label">Ø Erfüllungsquote</div>
-        <div class="value">${stats.avgQuote}<span class="unit">%</span></div>
-      </div>
-      <div class="stat-card">
-        <div class="label">Zoomcalls gehört</div>
-        <div class="value">${stats.zoomcalls}<span class="unit">total</span></div>
-      </div>
     </div>
+
+    <section class="panel">
+      <h2>Kategorien im Überblick</h2>
+      <p class="panel-sub">Wie oft jede Übung und jeder Trainingsbaustein bisher absolviert wurde.</p>
+      <div class="category-stats-grid">${renderCategoryStats(stats.categoryCounts)}</div>
+    </section>
 
     <section class="panel guide-panel">
       <h2>Trainingsanleitung</h2>
@@ -530,6 +541,15 @@ function renderPawStreak(streak){
   return html + (rest ? `<span style="font-family:var(--font-mono); font-size:12px; color:var(--ink-soft); margin-left:4px;">${rest}</span>` : "");
 }
 
+function renderCategoryStats(categoryCounts){
+  return CATEGORIES.map(c => `
+    <div class="cat-stat-card">
+      <div class="cat-stat-value">${categoryCounts[c.key]}<span class="cat-stat-unit">${c.countUnit}</span></div>
+      <div class="cat-stat-label">${c.countLabel}</div>
+    </div>
+  `).join("");
+}
+
 let selectedDate = todayISO();
 let checklistState = {};
 
@@ -584,27 +604,24 @@ async function saveEntry(){
 
 function updateStatCardsOnly(){
   const stats = computeStats();
-  const grid = document.querySelector(".stats-grid");
-  if (!grid) return;
-  grid.innerHTML = `
-    <div class="stat-card">
-      <div class="label">Trainingstage</div>
-      <div class="value">${stats.trainingsTage}<span class="unit">Tage</span></div>
-    </div>
-    <div class="stat-card">
-      <div class="label">Aktuelle Serie</div>
-      <div class="value">${stats.streak}<span class="unit">Tage in Folge</span></div>
-      <div class="paw-streak">${renderPawStreak(stats.streak)}</div>
-    </div>
-    <div class="stat-card">
-      <div class="label">Ø Erfüllungsquote</div>
-      <div class="value">${stats.avgQuote}<span class="unit">%</span></div>
-    </div>
-    <div class="stat-card">
-      <div class="label">Zoomcalls gehört</div>
-      <div class="value">${stats.zoomcalls}<span class="unit">total</span></div>
-    </div>
-  `;
+  const grid = document.querySelector(".stats-grid-top");
+  if (grid){
+    grid.innerHTML = `
+      <div class="stat-card">
+        <div class="label">Trainingstage</div>
+        <div class="value">${stats.trainingsTage}<span class="unit">Tage</span></div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Aktuelle Serie</div>
+        <div class="value">${stats.streak}<span class="unit">Tage in Folge</span></div>
+        <div class="paw-streak">${renderPawStreak(stats.streak)}</div>
+      </div>
+    `;
+  }
+  const catGrid = document.querySelector(".category-stats-grid");
+  if (catGrid){
+    catGrid.innerHTML = renderCategoryStats(stats.categoryCounts);
+  }
 }
 
 function renderChart14(){
