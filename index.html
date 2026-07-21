@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Hundetraining Tracker</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+
+<style>
+  :root{
+    --bg: #FAF6EF;
+    --surface: #FFFFFF;
+    --ink: #23231F;
+    --ink-soft: #6B6559;
+    --primary: #2F4538;
+    --primary-dark: #1E2E24;
+    --primary-soft: #DCE5DD;
+    --accent: #C98B3D;
+    --accent-soft: #F1E0C0;
+    --line: #E6DECB;
+    --danger: #B3492F;
+    --font-display: 'Fraunces', serif;
+    --font-body: 'Inter', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+    --radius: 14px;
+  }
+
+  *{ box-sizing: border-box; }
+  html, body{ margin:0; padding:0; }
+  body{
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-body);
+    line-height: 1.5;
+    min-height: 100vh;
+  }
+  h1,h2,h3{ font-family: var(--font-display); margin: 0; color: var(--primary-dark); }
+  button{ font-family: var(--font-body); cursor: pointer; }
+  input{ font-family: var(--font-body); }
+  a{ color: var(--primary); }
+
+  ::selection{ background: var(--accent-soft); }
+
+  /* ---------- Layout shells ---------- */
+  .center-screen{
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+
+  .app-shell{ max-width: 980px; margin: 0 auto; padding: 0 20px 80px; }
+
+  header.topbar{
+    display:flex; align-items:center; justify-content:space-between;
+    padding: 22px 0 18px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 28px;
+  }
+  header.topbar .brand{ display:flex; align-items:center; gap:10px; }
+  header.topbar .brand svg{ width:28px; height:28px; }
+  header.topbar .brand-text{ font-family: var(--font-display); font-size: 22px; font-weight:600; color: var(--primary-dark); }
+  header.topbar .user-box{ display:flex; align-items:center; gap:14px; font-size:14px; color: var(--ink-soft); }
+  header.topbar .logout-btn{
+    background:none; border:1px solid var(--line); color: var(--ink);
+    padding: 7px 14px; border-radius: 999px; font-size: 13px;
+    transition: all .15s ease;
+  }
+  header.topbar .logout-btn:hover{ background: var(--primary-soft); border-color: var(--primary-soft); }
+
+  /* ---------- Auth card ---------- */
+  .auth-card{
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 40px 36px;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 1px 2px rgba(30,46,36,0.04), 0 8px 30px rgba(30,46,36,0.06);
+  }
+  .auth-card .paw-mark{ width:38px; height:38px; margin-bottom: 18px; }
+  .auth-card h1{ font-size: 26px; margin-bottom: 6px; }
+  .auth-card p.sub{ color: var(--ink-soft); font-size: 14px; margin: 0 0 26px; }
+
+  .field{ margin-bottom: 16px; }
+  .field label{ display:block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--ink); }
+  .field input{
+    width: 100%; padding: 11px 13px; border-radius: 9px;
+    border: 1px solid var(--line); background: #FFFDF9; font-size: 14px;
+    outline: none; transition: border-color .15s ease;
+  }
+  .field input:focus{ border-color: var(--primary); }
+
+  .primary-btn{
+    width: 100%; background: var(--primary); color: #fff; border: none;
+    padding: 12px 16px; border-radius: 9px; font-size: 15px; font-weight: 600;
+    transition: background .15s ease;
+  }
+  .primary-btn:hover{ background: var(--primary-dark); }
+  .primary-btn:disabled{ opacity: .6; cursor: not-allowed; }
+
+  .switch-mode{ text-align:center; margin-top: 18px; font-size: 13px; color: var(--ink-soft); }
+  .switch-mode button{ background:none; border:none; color: var(--primary); font-weight:600; text-decoration: underline; padding:0; font-size:13px; }
+
+  .auth-error{
+    background: #FBEAE4; border: 1px solid #F0C7B8; color: var(--danger);
+    padding: 10px 12px; border-radius: 8px; font-size: 13px; margin-bottom: 16px;
+  }
+  .auth-notice{
+    background: var(--accent-soft); border: 1px solid #E4C88C; color: #7A5417;
+    padding: 10px 12px; border-radius: 8px; font-size: 13px; margin-bottom: 16px;
+  }
+
+  /* ---------- Stat cards ---------- */
+  .stats-grid{
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px;
+    margin-bottom: 30px;
+  }
+  @media (max-width: 760px){ .stats-grid{ grid-template-columns: repeat(2, 1fr); } }
+
+  .stat-card{
+    background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 18px 18px 16px;
+  }
+  .stat-card .label{ font-size: 12px; color: var(--ink-soft); font-weight: 600; text-transform: uppercase; letter-spacing: .03em; margin-bottom: 8px; }
+  .stat-card .value{ font-family: var(--font-mono); font-size: 28px; font-weight: 700; color: var(--primary-dark); }
+  .stat-card .value .unit{ font-size: 14px; font-weight: 500; color: var(--ink-soft); margin-left: 3px; }
+
+  .paw-streak{ display:flex; gap: 4px; margin-top: 10px; }
+  .paw-streak svg{ width: 16px; height: 16px; }
+  .paw-streak .filled{ fill: var(--accent); }
+  .paw-streak .empty{ fill: var(--line); }
+
+  /* ---------- Sections ---------- */
+  section.panel{
+    background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 24px 26px; margin-bottom: 24px;
+  }
+  section.panel h2{ font-size: 19px; margin-bottom: 4px; }
+  section.panel p.panel-sub{ color: var(--ink-soft); font-size: 13px; margin: 0 0 18px; }
+
+  .checklist{ display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px 18px; margin-bottom: 20px; }
+  @media (max-width: 640px){ .checklist{ grid-template-columns: 1fr; } }
+
+  .check-item{
+    display:flex; align-items:center; gap: 10px;
+    padding: 10px 12px; border: 1px solid var(--line); border-radius: 9px;
+    cursor: pointer; transition: all .15s ease; background: #FFFDF9;
+  }
+  .check-item:hover{ border-color: var(--primary); }
+  .check-item.active{ background: var(--primary-soft); border-color: var(--primary); }
+  .check-item input{ width: 17px; height: 17px; accent-color: var(--primary); flex-shrink:0; }
+  .check-item .txt{ font-size: 14px; }
+
+  .save-row{ display:flex; align-items:center; gap: 14px; }
+  .save-row .save-btn{
+    background: var(--primary); color:#fff; border:none; padding: 11px 22px;
+    border-radius: 9px; font-weight:600; font-size: 14px;
+  }
+  .save-row .save-btn:hover{ background: var(--primary-dark); }
+  .save-status{ font-size: 13px; color: var(--ink-soft); }
+  .save-status.ok{ color: var(--primary); font-weight:600; }
+
+  .date-pick{ display:flex; align-items:center; gap: 10px; margin-bottom: 18px; }
+  .date-pick input{ padding: 8px 10px; border-radius: 7px; border: 1px solid var(--line); font-size: 13px; }
+
+  /* ---------- Chart ---------- */
+  .chart-wrap{ height: 240px; }
+
+  /* ---------- Table ---------- */
+  table.history{ width: 100%; border-collapse: collapse; font-size: 13px; }
+  table.history th{
+    text-align: left; padding: 8px 10px; color: var(--ink-soft);
+    font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: .03em;
+    border-bottom: 1px solid var(--line); white-space: nowrap;
+  }
+  table.history td{ padding: 9px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  table.history tr:last-child td{ border-bottom: none; }
+  .dot{ display:inline-block; width:9px; height:9px; border-radius:50%; }
+  .dot.yes{ background: var(--primary); }
+  .dot.no{ background: var(--line); }
+  .table-scroll{ overflow-x: auto; }
+  .empty-state{ color: var(--ink-soft); font-size: 14px; padding: 10px 2px; }
+
+  .loading-line{ color: var(--ink-soft); font-size: 14px; padding: 40px 0; text-align:center; }
+
+  footer.app-footer{ text-align:center; color: var(--ink-soft); font-size: 12px; padding: 10px 0 30px; }
+</style>
+</head>
+<body>
+
+<div id="root"></div>
+
+<script>
+/* =========================================================
+   KONFIGURATION — HIER DEINE SUPABASE-DATEN EINTRAGEN
+   ========================================================= */
+const SUPABASE_URL = "https://mtgwefeyaifzfwslvxeu.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_HjdiBOY49tGgqUG1xhPhHQ_GyAvBNq7";
+
+const CATEGORIES = [
+  { key: "sitz_platz",        label: "Sitz/Platz geübt" },
+  { key: "hundebett",         label: "Hundebett geübt" },
+  { key: "abrufen",           label: "Abrufen geübt" },
+  { key: "fuss",              label: "Fuss geübt" },
+  { key: "lernvideo",         label: "Lernvideo geschaut" },
+  { key: "zoomcall_aufnahme", label: "Zoomcall Aufnahme gehört" },
+  { key: "zoomcall_live",     label: "Zoomcall Live gehört" },
+  { key: "dokumente",         label: "Dokumente angeschaut/ausgefüllt" },
+  { key: "privattraining",    label: "Privattraining" },
+  { key: "gruppentraining",   label: "Gruppentraining" },
+];
+
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const root = document.getElementById("root");
+
+/* ---------- Icons ---------- */
+const pawSVG = (cls) => `
+<svg viewBox="0 0 64 64" class="${cls || ''}" xmlns="http://www.w3.org/2000/svg">
+  <ellipse cx="32" cy="40" rx="16" ry="13"/>
+  <ellipse cx="12" cy="20" rx="7" ry="9"/>
+  <ellipse cx="28" cy="10" rx="7" ry="9"/>
+  <ellipse cx="46" cy="12" rx="7" ry="9.5"/>
+  <ellipse cx="58" cy="24" rx="6.5" ry="8.5"/>
+</svg>`;
+
+const brandMark = `
+<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <ellipse cx="32" cy="40" rx="16" ry="13" fill="#2F4538"/>
+  <ellipse cx="12" cy="20" rx="7" ry="9" fill="#C98B3D"/>
+  <ellipse cx="28" cy="10" rx="7" ry="9" fill="#C98B3D"/>
+  <ellipse cx="46" cy="12" rx="7" ry="9.5" fill="#C98B3D"/>
+  <ellipse cx="58" cy="24" rx="6.5" ry="8.5" fill="#C98B3D"/>
+</svg>`;
+
+/* ---------- Helpers ---------- */
+function todayISO(){
+  const d = new Date();
+  const off = d.getTimezoneOffset();
+  const local = new Date(d.getTime() - off*60000);
+  return local.toISOString().slice(0,10);
+}
+function isoDaysAgo(n){
+  const d = new Date();
+  d.setDate(d.getDate() - n);
+  const off = d.getTimezoneOffset();
+  const local = new Date(d.getTime() - off*60000);
+  return local.toISOString().slice(0,10);
+}
+function formatDateDE(iso){
+  const [y,m,d] = iso.split("-");
+  return `${d}.${m}.${y}`;
+}
+function weekdayShortDE(iso){
+  const days = ["So","Mo","Di","Mi","Do","Fr","Sa"];
+  const d = new Date(iso + "T00:00:00");
+  return days[d.getDay()];
+}
+function countChecked(entry){
+  return CATEGORIES.reduce((sum,c) => sum + (entry[c.key] ? 1 : 0), 0);
+}
+
+let currentUser = null;
+let currentEntries = [];
+let chartInstance = null;
+let authMode = "login"; // or "signup"
+
+/* =========================================================
+   AUTH SCREEN
+   ========================================================= */
+function renderAuth(errorMsg, noticeMsg){
+  root.innerHTML = `
+    <div class="center-screen">
+      <div class="auth-card">
+        <div class="paw-mark">${brandMark}</div>
+        <h1>${authMode === "login" ? "Willkommen zurück" : "Konto erstellen"}</h1>
+        <p class="sub">${authMode === "login"
+          ? "Melde dich an, um dein Hundetraining zu tracken."
+          : "Erstelle deinen Zugang für den Trainings-Tracker."}</p>
+
+        ${errorMsg ? `<div class="auth-error">${errorMsg}</div>` : ""}
+        ${noticeMsg ? `<div class="auth-notice">${noticeMsg}</div>` : ""}
+
+        <form id="auth-form">
+          <div class="field">
+            <label>E-Mail</label>
+            <input type="email" id="email" required autocomplete="email" placeholder="du@beispiel.ch" />
+          </div>
+          <div class="field">
+            <label>Passwort</label>
+            <input type="password" id="password" required minlength="6" autocomplete="current-password" placeholder="mind. 6 Zeichen" />
+          </div>
+          <button class="primary-btn" type="submit" id="auth-submit">
+            ${authMode === "login" ? "Anmelden" : "Konto erstellen"}
+          </button>
+        </form>
+
+        <div class="switch-mode">
+          ${authMode === "login"
+            ? `Noch kein Konto? <button id="switch-btn">Jetzt registrieren</button>`
+            : `Schon ein Konto? <button id="switch-btn">Jetzt anmelden</button>`}
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.getElementById("switch-btn").onclick = () => {
+    authMode = authMode === "login" ? "signup" : "login";
+    renderAuth();
+  };
+
+  document.getElementById("auth-form").onsubmit = async (e) => {
+    e.preventDefault();
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value;
+    const btn = document.getElementById("auth-submit");
+    btn.disabled = true;
+    btn.textContent = "Einen Moment …";
+
+    try{
+      if (authMode === "login"){
+        const { error } = await sb.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+        // onAuthStateChange übernimmt das Weiterleiten
+      } else {
+        const { error } = await sb.auth.signUp({ email, password });
+        if (error) throw error;
+        authMode = "login";
+        renderAuth(null, "Konto erstellt! Falls eine Bestätigungs-E-Mail nötig ist, prüfe dein Postfach. Danach kannst du dich anmelden.");
+        return;
+      }
+    } catch(err){
+      renderAuth(translateError(err.message));
+    }
+  };
+}
+
+function translateError(msg){
+  if (!msg) return "Etwas ist schiefgelaufen. Bitte versuche es erneut.";
+  if (msg.includes("Invalid login credentials")) return "E-Mail oder Passwort ist falsch.";
+  if (msg.includes("already registered")) return "Für diese E-Mail existiert bereits ein Konto.";
+  if (msg.includes("Password should be")) return "Das Passwort muss mindestens 6 Zeichen haben.";
+  return msg;
+}
+
+/* =========================================================
+   APP SCREEN
+   ========================================================= */
+async function renderApp(){
+  root.innerHTML = `
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="brand">${brandMark}<span class="brand-text">Hundetraining Tracker</span></div>
+        <div class="user-box">
+          <span>${currentUser.email}</span>
+          <button class="logout-btn" id="logout-btn">Abmelden</button>
+        </div>
+      </header>
+      <div id="content"><div class="loading-line">Lade deine Trainingsdaten …</div></div>
+      <footer class="app-footer">Trag dein Training täglich ein — kleine Schritte, grosse Wirkung 🐾</footer>
+    </div>
+  `;
+  document.getElementById("logout-btn").onclick = async () => {
+    await sb.auth.signOut();
+  };
+
+  await loadEntries();
+  renderContent();
+}
+
+async function loadEntries(){
+  const { data, error } = await sb
+    .from("training_entries")
+    .select("*")
+    .eq("user_id", currentUser.id)
+    .order("entry_date", { ascending: true });
+
+  if (error){
+    document.getElementById("content").innerHTML =
+      `<div class="auth-error">Fehler beim Laden: ${error.message}</div>`;
+    return;
+  }
+  currentEntries = data || [];
+}
+
+function computeStats(){
+  const trainingsTage = currentEntries.length;
+
+  // Streak: consecutive days up to today (or up to yesterday if today not yet logged)
+  const dateSet = new Set(currentEntries.map(e => e.entry_date));
+  let streak = 0;
+  let cursor = dateSet.has(todayISO()) ? 0 : 1;
+  while (dateSet.has(isoDaysAgo(cursor))){
+    streak++;
+    cursor++;
+  }
+
+  const avgQuote = trainingsTage
+    ? Math.round((currentEntries.reduce((s,e) => s + countChecked(e), 0) / (trainingsTage * CATEGORIES.length)) * 100)
+    : 0;
+
+  const zoomcalls = currentEntries.reduce((s,e) =>
+    s + (e.zoomcall_aufnahme ? 1 : 0) + (e.zoomcall_live ? 1 : 0), 0);
+
+  return { trainingsTage, streak, avgQuote, zoomcalls };
+}
+
+function renderContent(){
+  const stats = computeStats();
+  const today = todayISO();
+  const todaysEntry = currentEntries.find(e => e.entry_date === selectedDate) || {};
+
+  const content = document.getElementById("content");
+  content.innerHTML = `
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="label">Trainingstage</div>
+        <div class="value">${stats.trainingsTage}<span class="unit">Tage</span></div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Aktuelle Serie</div>
+        <div class="value">${stats.streak}<span class="unit">Tage in Folge</span></div>
+        <div class="paw-streak">${renderPawStreak(stats.streak)}</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Ø Erfüllungsquote</div>
+        <div class="value">${stats.avgQuote}<span class="unit">%</span></div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Zoomcalls gehört</div>
+        <div class="value">${stats.zoomcalls}<span class="unit">total</span></div>
+      </div>
+    </div>
+
+    <section class="panel">
+      <h2>Training eintragen</h2>
+      <p class="panel-sub">Wähle das Datum und hake ab, was ihr geübt habt.</p>
+      <div class="date-pick">
+        <label style="font-size:13px; font-weight:600;">Datum</label>
+        <input type="date" id="entry-date" value="${selectedDate}" max="${today}" />
+      </div>
+      <div class="checklist" id="checklist"></div>
+      <div class="save-row">
+        <button class="save-btn" id="save-btn">Eintrag speichern</button>
+        <span class="save-status" id="save-status"></span>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Letzte 14 Trainingstage</h2>
+      <p class="panel-sub">Anzahl erledigter Kategorien pro Tag (von max. ${CATEGORIES.length}).</p>
+      <div class="chart-wrap"><canvas id="chart14"></canvas></div>
+    </section>
+
+    <section class="panel">
+      <h2>Verlauf</h2>
+      <p class="panel-sub">Alle bisherigen Einträge im Überblick.</p>
+      <div class="table-scroll">${renderHistoryTable()}</div>
+    </section>
+  `;
+
+  renderChecklist(todaysEntry);
+  document.getElementById("entry-date").onchange = (e) => {
+    selectedDate = e.target.value;
+    renderContent();
+  };
+  document.getElementById("save-btn").onclick = saveEntry;
+
+  renderChart14();
+}
+
+function renderPawStreak(streak){
+  const shown = Math.min(streak, 7);
+  const rest = streak > 7 ? ` +${streak - 7}` : "";
+  let html = "";
+  for (let i=0; i<Math.max(shown,1); i++){
+    html += pawSVG(i < shown ? "filled" : "empty");
+  }
+  return html + (rest ? `<span style="font-family:var(--font-mono); font-size:12px; color:var(--ink-soft); margin-left:4px;">${rest}</span>` : "");
+}
+
+let selectedDate = todayISO();
+let checklistState = {};
+
+function renderChecklist(entry){
+  CATEGORIES.forEach(c => { checklistState[c.key] = !!entry[c.key]; });
+  paintChecklist();
+}
+
+function paintChecklist(){
+  const el = document.getElementById("checklist");
+  if (!el) return;
+  el.innerHTML = CATEGORIES.map(c => `
+    <label class="check-item ${checklistState[c.key] ? 'active' : ''}" data-key="${c.key}">
+      <input type="checkbox" ${checklistState[c.key] ? "checked" : ""} data-key="${c.key}" />
+      <span class="txt">${c.label}</span>
+    </label>
+  `).join("");
+
+  el.querySelectorAll("input[type=checkbox]").forEach(input => {
+    input.onchange = () => {
+      const key = input.dataset.key;
+      checklistState[key] = input.checked;
+      paintChecklist();
+    };
+  });
+}
+
+async function saveEntry(){
+  const statusEl = document.getElementById("save-status");
+  statusEl.textContent = "Speichere …";
+  statusEl.className = "save-status";
+
+  const row = { user_id: currentUser.id, entry_date: selectedDate };
+  CATEGORIES.forEach(c => { row[c.key] = !!checklistState[c.key]; });
+
+  const { error } = await sb
+    .from("training_entries")
+    .upsert(row, { onConflict: "user_id,entry_date" });
+
+  if (error){
+    statusEl.textContent = "Fehler: " + error.message;
+    return;
+  }
+
+  await loadEntries();
+  statusEl.textContent = "Gespeichert ✓";
+  statusEl.className = "save-status ok";
+  renderChart14();
+  document.querySelector(".table-scroll").innerHTML = renderHistoryTable();
+  updateStatCardsOnly();
+}
+
+function updateStatCardsOnly(){
+  const stats = computeStats();
+  const grid = document.querySelector(".stats-grid");
+  if (!grid) return;
+  grid.innerHTML = `
+    <div class="stat-card">
+      <div class="label">Trainingstage</div>
+      <div class="value">${stats.trainingsTage}<span class="unit">Tage</span></div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Aktuelle Serie</div>
+      <div class="value">${stats.streak}<span class="unit">Tage in Folge</span></div>
+      <div class="paw-streak">${renderPawStreak(stats.streak)}</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Ø Erfüllungsquote</div>
+      <div class="value">${stats.avgQuote}<span class="unit">%</span></div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Zoomcalls gehört</div>
+      <div class="value">${stats.zoomcalls}<span class="unit">total</span></div>
+    </div>
+  `;
+}
+
+function renderChart14(){
+  const days = [];
+  for (let i=13; i>=0; i--) days.push(isoDaysAgo(i));
+
+  const values = days.map(iso => {
+    const entry = currentEntries.find(e => e.entry_date === iso);
+    return entry ? countChecked(entry) : 0;
+  });
+  const labels = days.map(iso => `${weekdayShortDE(iso)} ${iso.slice(8,10)}.${iso.slice(5,7)}`);
+
+  const ctx = document.getElementById("chart14");
+  if (!ctx) return;
+  if (chartInstance) chartInstance.destroy();
+
+  chartInstance = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels,
+      datasets: [{
+        label: "Erledigte Kategorien",
+        data: values,
+        backgroundColor: "#2F4538",
+        borderRadius: 5,
+        maxBarThickness: 28,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: { beginAtZero: true, max: CATEGORIES.length, ticks: { stepSize: 2, font: { family: "Inter" } }, grid: { color: "#E6DECB" } },
+        x: { ticks: { font: { family: "Inter", size: 11 } }, grid: { display: false } }
+      },
+      plugins: { legend: { display: false } }
+    }
+  });
+}
+
+function renderHistoryTable(){
+  if (!currentEntries.length){
+    return `<div class="empty-state">Noch keine Einträge vorhanden. Trag dein erstes Training oben ein!</div>`;
+  }
+  const sorted = [...currentEntries].sort((a,b) => b.entry_date.localeCompare(a.entry_date));
+  return `
+    <table class="history">
+      <thead>
+        <tr>
+          <th>Datum</th>
+          ${CATEGORIES.map(c => `<th>${c.label}</th>`).join("")}
+        </tr>
+      </thead>
+      <tbody>
+        ${sorted.map(e => `
+          <tr>
+            <td><strong>${formatDateDE(e.entry_date)}</strong></td>
+            ${CATEGORIES.map(c => `<td><span class="dot ${e[c.key] ? 'yes' : 'no'}"></span></td>`).join("")}
+          </tr>
+        `).join("")}
+      </tbody>
+    </table>
+  `;
+}
+
+/* =========================================================
+   BOOTSTRAP / AUTH LISTENER
+   ========================================================= */
+async function boot(){
+  const { data: { session } } = await sb.auth.getSession();
+  if (session?.user){
+    currentUser = session.user;
+    renderApp();
+  } else {
+    renderAuth();
+  }
+}
+
+sb.auth.onAuthStateChange((event, session) => {
+  if (event === "SIGNED_IN" && session?.user){
+    currentUser = session.user;
+    selectedDate = todayISO();
+    renderApp();
+  }
+  if (event === "SIGNED_OUT"){
+    currentUser = null;
+    currentEntries = [];
+    authMode = "login";
+    renderAuth();
+  }
+});
+
+boot();
+</script>
+</body>
+</html>
