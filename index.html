@@ -126,6 +126,8 @@
   @media (max-width: 760px){ .stats-grid{ grid-template-columns: repeat(2, 1fr); } }
 
   .stats-grid-top{ grid-template-columns: repeat(2, 1fr); max-width: 620px; }
+  .stats-grid-top-3{ grid-template-columns: repeat(3, 1fr); max-width: 920px; }
+  @media (max-width: 760px){ .stats-grid-top-3{ grid-template-columns: repeat(2, 1fr); } }
 
   .stat-card{
     background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
@@ -147,6 +149,10 @@
   .cat-stat-value{ font-family: var(--font-mono); font-size: 22px; font-weight: 700; color: var(--primary-dark); }
   .cat-stat-value .cat-stat-unit{ font-size: 12px; font-weight: 500; color: var(--ink-soft); margin-left: 3px; }
   .cat-stat-label{ font-size: 12px; color: var(--ink-soft); margin-top: 4px; line-height: 1.35; }
+  .cat-stat-extra{ display:flex; flex-wrap:wrap; gap: 8px; margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--line); }
+  .cat-stat-extra span{ font-size: 11px; color: var(--ink-soft); font-family: var(--font-mono); }
+  .cat-stat-extra .cat-stat-success{ color: var(--danger); font-weight: 600; }
+  .cat-stat-extra .cat-stat-success.good{ color: #3C6B33; }
 
   .paw-streak{ display:flex; gap: 4px; margin-top: 10px; }
   .paw-streak svg{ width: 16px; height: 16px; }
@@ -173,21 +179,62 @@
   .guide-green h3{ color: #3C6B33; }
   .guide-blue{ background: #E6EEF6; border-color: #C3D7EC; }
   .guide-blue h3{ color: #2C5680; }
+
+  .weekly-goal-panel{ background: var(--accent-soft); border-color: #E4C88C; }
+  .goal-grid{ display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 16px; }
+  @media (max-width: 760px){ .goal-grid{ grid-template-columns: 1fr; } }
+  .weekly-goal-panel .field input{ background: #FFFDF9; }
+  .goal-display{
+    margin-top: 14px; padding-top: 14px; border-top: 1px solid #E4C88C;
+    font-size: 13.5px; line-height: 1.6;
+  }
+  .goal-display-label{ font-weight: 700; color: var(--primary-dark); }
   section.panel p.panel-sub{ color: var(--ink-soft); font-size: 13px; margin: 0 0 18px; }
 
   .checklist{ display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px 18px; margin-bottom: 20px; }
   @media (max-width: 640px){ .checklist{ grid-template-columns: 1fr; } }
 
   .check-item{
-    display:flex; align-items:flex-start; gap: 10px;
+    display:flex; flex-direction: column;
     padding: 10px 12px; border: 1px solid var(--line); border-radius: 9px;
-    cursor: pointer; transition: all .15s ease; background: #FFFDF9;
+    transition: all .15s ease; background: #FFFDF9;
   }
   .check-item:hover{ border-color: var(--primary); }
   .check-item.active{ background: var(--primary-soft); border-color: var(--primary); }
-  .check-item input{ width: 17px; height: 17px; accent-color: var(--primary); flex-shrink:0; margin-top: 2px; }
+  .check-item input[type=checkbox]{ width: 17px; height: 17px; accent-color: var(--primary); flex-shrink:0; margin-top: 2px; }
   .check-item .txt{ font-size: 14px; }
   .check-item .txt .hint{ display:block; font-size: 11.5px; color: var(--ink-soft); font-weight: 400; margin-top: 2px; }
+
+  .check-item-header{ display:flex; align-items:flex-start; gap: 10px; cursor: pointer; }
+  .reps-row{
+    display:flex; align-items:flex-end; gap: 10px; margin-top: 10px;
+    padding-top: 10px; border-top: 1px dashed var(--line); flex-wrap: wrap;
+  }
+  .reps-field{ display:flex; flex-direction: column; gap: 4px; }
+  .reps-field label{ font-size: 11px; color: var(--ink-soft); font-weight: 600; }
+  .reps-field input{
+    width: 68px; padding: 6px 8px; border-radius: 7px; border: 1px solid var(--line);
+    font-size: 13px; font-family: var(--font-mono); background: #FFFFFF;
+  }
+  .reps-field input:focus{ border-color: var(--primary); outline: none; }
+  .reps-rate{ font-size: 12px; font-weight: 600; color: var(--ink-soft); padding-bottom: 6px; }
+
+  .reflexion-field{ margin: 4px 0 20px; }
+  .reflexion-field label{ display:block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--ink); }
+  .reflexion-field .optional-tag{ font-weight: 400; color: var(--ink-soft); font-size: 12px; }
+  .reflexion-field textarea{
+    width: 100%; padding: 10px 12px; border-radius: 9px; border: 1px solid var(--line);
+    background: #FFFDF9; font-size: 14px; font-family: var(--font-body); resize: vertical;
+    outline: none;
+  }
+  .reflexion-field textarea:focus{ border-color: var(--primary); }
+
+  .save-confirmation{
+    margin-top: 14px; padding: 12px 16px; border-radius: 9px;
+    background: var(--primary-soft); color: var(--primary-dark);
+    font-weight: 600; font-size: 14px;
+  }
+
 
   .save-row{ display:flex; align-items:center; gap: 14px; }
   .save-row .save-btn{
@@ -212,6 +259,10 @@
     border-bottom: 1px solid var(--line); white-space: nowrap;
   }
   table.history td{ padding: 9px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  .reps-cell{ font-family: var(--font-mono); font-size: 12.5px; color: var(--ink); display:inline-flex; align-items:center; gap:5px; }
+  .reps-cell.good{ color: #3C6B33; font-weight: 600; }
+  .reps-cell-pct{ font-size: 10.5px; color: var(--ink-soft); }
+  .reflexion-cell{ white-space: normal; max-width: 260px; font-size: 12.5px; color: var(--ink-soft); }
   table.history tr:last-child td{ border-bottom: none; }
   .dot{ display:inline-block; width:9px; height:9px; border-radius:50%; }
   .dot.yes{ background: var(--primary); }
@@ -236,14 +287,18 @@ const SUPABASE_URL = "https://mtgwefeyaifzfwslvxeu.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_HjdiBOY49tGgqUG1xhPhHQ_GyAvBNq7";
 
 const CATEGORIES = [
-  { key: "sitz_platz",        label: "Sitz/Platz geübt", hint: "mind. 10–20x pro Spaziergang", countLabel: "Sitz/Platz geübt", countUnit: "Tage" },
-  { key: "hundebett",         label: "Hundebett geübt", hint: "mind. 5x", countLabel: "Hundebett geübt", countUnit: "Tage" },
-  { key: "abrufen",           label: "Abrufen geübt", hint: "mind. 10–20x pro Spaziergang", countLabel: "Abrufen geübt", countUnit: "Tage" },
-  { key: "fuss",              label: "Fuss geübt", hint: "mind. 3–5x pro Spaziergang", countLabel: "Fuss geübt", countUnit: "Tage" },
+  { key: "sitz_platz",        label: "Sitz/Platz geübt", hint: "mind. 10–20x pro Spaziergang", countLabel: "Sitz/Platz geübt", countUnit: "Tage",
+    trackReps: true, repsLabel: "Wiederholungen", successLabel: "davon erfolgreich" },
+  { key: "hundebett",         label: "Hundebett-Übung durchgeführt", hint: "mind. 5x", countLabel: "Hundebett-Übungen durchgeführt", countUnit: "Tage",
+    trackReps: true, repsLabel: "Wiederholungen", successLabel: "davon erfolgreich" },
+  { key: "abrufen",           label: "Abruf geübt", hint: "mind. 10–20x pro Spaziergang", countLabel: "Abruf geübt", countUnit: "Tage",
+    trackReps: true, repsLabel: "Wiederholungen", successLabel: "davon erfolgreich" },
+  { key: "fuss",              label: "Fusslaufen geübt", hint: "mind. 3–5x pro Spaziergang", countLabel: "Fusslaufen geübt", countUnit: "Tage",
+    trackReps: true, repsLabel: "Sequenzen/Minuten", successLabel: "davon erfolgreich" },
   { key: "lernvideo",         label: "Lernvideo geschaut", countLabel: "Lernvideos geschaut", countUnit: "Mal" },
-  { key: "zoomcall_aufnahme", label: "Zoomcall Aufnahme gehört", countLabel: "Zoomcall Aufnahmen gehört", countUnit: "Mal" },
-  { key: "zoomcall_live",     label: "Zoomcall Live gehört", countLabel: "Zoomcall Live gehört", countUnit: "Mal" },
-  { key: "dokumente",         label: "Dokumente angeschaut/ausgefüllt", countLabel: "Dokumente bearbeitet", countUnit: "Mal" },
+  { key: "zoomcall_aufnahme", label: "Live-Call-Aufzeichnung angesehen", countLabel: "Live-Call-Aufzeichnungen angesehen", countUnit: "Mal" },
+  { key: "zoomcall_live",     label: "Live-Call besucht", countLabel: "Live-Calls besucht", countUnit: "Mal" },
+  { key: "dokumente",         label: "Dokument bearbeitet", countLabel: "Dokumente bearbeitet", countUnit: "Mal" },
   { key: "privattraining",    label: "Privattraining", countLabel: "Privattrainings absolviert", countUnit: "Mal" },
   { key: "gruppentraining",   label: "Gruppentraining", countLabel: "Gruppentrainings absolviert", countUnit: "Mal" },
 ];
@@ -290,11 +345,34 @@ function weekdayShortDE(iso){
 function countChecked(entry){
   return CATEGORIES.reduce((sum,c) => sum + (entry[c.key] ? 1 : 0), 0);
 }
+function escapeHtml(str){
+  const div = document.createElement("div");
+  div.textContent = str;
+  return div.innerHTML;
+}
+function escapeAttr(str){
+  return String(str).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+function getWeekRange(){
+  // Montag–Sonntag der aktuellen Woche
+  const d = new Date();
+  const off = d.getTimezoneOffset();
+  const local = new Date(d.getTime() - off*60000);
+  const dow = local.getDay(); // 0=So, 1=Mo, ...
+  const diffToMonday = dow === 0 ? -6 : 1 - dow;
+  const monday = new Date(local);
+  monday.setDate(local.getDate() + diffToMonday);
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+  return { start: monday.toISOString().slice(0,10), end: sunday.toISOString().slice(0,10) };
+}
 
 let currentUser = null;
 let currentEntries = [];
 let chartInstance = null;
 let authMode = "login"; // or "signup"
+let weeklyGoal = null; // { focus, goal, target_days }
+let reflexionText = "";
 
 /* =========================================================
    AUTH SCREEN
@@ -388,7 +466,7 @@ async function renderApp(){
         </div>
       </header>
       <div id="content"><div class="loading-line">Lade deine Trainingsdaten …</div></div>
-      <footer class="app-footer">Trag dein Training täglich ein — kleine Schritte, grosse Wirkung 🐾</footer>
+      <footer class="app-footer">Was du regelmässig wiederholst, wird zur Gewohnheit.</footer>
     </div>
   `;
   document.getElementById("logout-btn").onclick = async () => {
@@ -396,6 +474,7 @@ async function renderApp(){
   };
 
   await loadEntries();
+  await loadWeeklyGoal();
   renderContent();
 }
 
@@ -414,6 +493,37 @@ async function loadEntries(){
   currentEntries = data || [];
 }
 
+async function loadWeeklyGoal(){
+  const { data, error } = await sb
+    .from("weekly_goals")
+    .select("*")
+    .eq("user_id", currentUser.id)
+    .maybeSingle();
+
+  if (!error && data){
+    weeklyGoal = data;
+  } else {
+    weeklyGoal = null;
+  }
+}
+
+async function saveWeeklyGoal(focus, goal, targetDays){
+  const row = {
+    user_id: currentUser.id,
+    focus: focus || null,
+    goal: goal || null,
+    target_days: targetDays || null,
+    updated_at: new Date().toISOString(),
+  };
+  const { error } = await sb
+    .from("weekly_goals")
+    .upsert(row, { onConflict: "user_id" });
+
+  if (error) return { error };
+  await loadWeeklyGoal();
+  return { error: null };
+}
+
 function computeStats(){
   const trainingsTage = currentEntries.length;
 
@@ -427,21 +537,71 @@ function computeStats(){
   }
 
   const categoryCounts = {};
+  const categoryReps = {};
   CATEGORIES.forEach(c => {
     categoryCounts[c.key] = currentEntries.reduce((s,e) => s + (e[c.key] ? 1 : 0), 0);
+
+    if (c.trackReps){
+      const repsField = c.key + "_reps";
+      const successField = c.key + "_success";
+      const daysWithReps = currentEntries.filter(e => e[repsField] !== null && e[repsField] !== undefined);
+      const daysWithSuccess = currentEntries.filter(e => e[successField] !== null && e[successField] !== undefined && e[repsField]);
+
+      const totalReps = daysWithReps.reduce((s,e) => s + Number(e[repsField] || 0), 0);
+      const avgReps = daysWithReps.length ? Math.round(totalReps / daysWithReps.length) : 0;
+      const avgSuccessRate = daysWithSuccess.length
+        ? Math.round(daysWithSuccess.reduce((s,e) => s + (Number(e[successField]) / Number(e[repsField])) * 100, 0) / daysWithSuccess.length)
+        : null;
+
+      categoryReps[c.key] = { totalReps, avgReps, avgSuccessRate, daysWithReps: daysWithReps.length };
+    }
   });
 
-  return { trainingsTage, streak, categoryCounts };
+  // Wochenziel-Fortschritt: Trainingstage innerhalb der aktuellen Kalenderwoche (Mo–So)
+  const week = getWeekRange();
+  const weekDaysTrained = currentEntries.filter(e => e.entry_date >= week.start && e.entry_date <= week.end).length;
+
+  return { trainingsTage, streak, categoryCounts, categoryReps, weekDaysTrained };
 }
 
 function renderContent(){
   const stats = computeStats();
   const today = todayISO();
   const todaysEntry = currentEntries.find(e => e.entry_date === selectedDate) || {};
+  const goalTarget = weeklyGoal?.target_days || null;
 
   const content = document.getElementById("content");
   content.innerHTML = `
-    <div class="stats-grid stats-grid-top">
+    <section class="panel weekly-goal-panel">
+      <h2>Mein Wochenziel</h2>
+      <p class="panel-sub">Dein Fokus und Ziel für diese Woche.</p>
+      <div class="goal-grid">
+        <div class="field">
+          <label>Mein Fokus diese Woche</label>
+          <input type="text" id="goal-focus" placeholder="z.B. Ruhe beim Abrufen" value="${weeklyGoal?.focus ? escapeAttr(weeklyGoal.focus) : ''}" />
+        </div>
+        <div class="field">
+          <label>Mein Ziel für diese Woche</label>
+          <input type="text" id="goal-text" placeholder="z.B. Abruf auf 7/10 bringen" value="${weeklyGoal?.goal ? escapeAttr(weeklyGoal.goal) : ''}" />
+        </div>
+        <div class="field">
+          <label>Gewünschte Trainingstage (von 7)</label>
+          <input type="number" id="goal-days" min="1" max="7" placeholder="z.B. 5" value="${goalTarget || ''}" />
+        </div>
+      </div>
+      <div class="save-row">
+        <button class="save-btn" id="goal-save-btn">Wochenziel speichern</button>
+        <span class="save-status" id="goal-save-status"></span>
+      </div>
+      ${weeklyGoal?.focus || weeklyGoal?.goal ? `
+        <div class="goal-display">
+          ${weeklyGoal.focus ? `<div><span class="goal-display-label">Fokus:</span> ${escapeHtml(weeklyGoal.focus)}</div>` : ""}
+          ${weeklyGoal.goal ? `<div><span class="goal-display-label">Ziel:</span> ${escapeHtml(weeklyGoal.goal)}</div>` : ""}
+        </div>
+      ` : ""}
+    </section>
+
+    <div class="stats-grid stats-grid-top stats-grid-top-3">
       <div class="stat-card">
         <div class="label">Trainingstage</div>
         <div class="value">${stats.trainingsTage}<span class="unit">Tage</span></div>
@@ -451,12 +611,16 @@ function renderContent(){
         <div class="value">${stats.streak}<span class="unit">Tage in Folge</span></div>
         <div class="paw-streak">${renderPawStreak(stats.streak)}</div>
       </div>
+      <div class="stat-card">
+        <div class="label">Wochenziel</div>
+        <div class="value">${stats.weekDaysTrained}<span class="unit">${goalTarget ? `von ${goalTarget} Tagen` : 'Tage diese Woche'}</span></div>
+      </div>
     </div>
 
     <section class="panel">
       <h2>Kategorien im Überblick</h2>
       <p class="panel-sub">Wie oft jede Übung und jeder Trainingsbaustein bisher absolviert wurde.</p>
-      <div class="category-stats-grid">${renderCategoryStats(stats.categoryCounts)}</div>
+      <div class="category-stats-grid">${renderCategoryStats(stats.categoryCounts, stats.categoryReps)}</div>
     </section>
 
     <section class="panel guide-panel">
@@ -502,10 +666,17 @@ function renderContent(){
         <input type="date" id="entry-date" value="${selectedDate}" max="${today}" />
       </div>
       <div class="checklist" id="checklist"></div>
+
+      <div class="reflexion-field">
+        <label>Was lief heute gut – und worauf achtest du morgen besonders? <span class="optional-tag">(freiwillig)</span></label>
+        <textarea id="reflexion-input" rows="3" placeholder="Deine Gedanken zum heutigen Training …">${escapeHtml(reflexionText)}</textarea>
+      </div>
+
       <div class="save-row">
         <button class="save-btn" id="save-btn">Eintrag speichern</button>
         <span class="save-status" id="save-status"></span>
       </div>
+      <div class="save-confirmation" id="save-confirmation" style="display:none;">Training gespeichert. Konsequenz entsteht durch Wiederholung.</div>
     </section>
 
     <section class="panel">
@@ -522,13 +693,40 @@ function renderContent(){
   `;
 
   renderChecklist(todaysEntry);
+  reflexionText = todaysEntry.reflexion || "";
+  document.getElementById("reflexion-input").value = reflexionText;
+  document.getElementById("reflexion-input").oninput = (e) => {
+    reflexionText = e.target.value;
+  };
   document.getElementById("entry-date").onchange = (e) => {
     selectedDate = e.target.value;
     renderContent();
   };
   document.getElementById("save-btn").onclick = saveEntry;
+  document.getElementById("goal-save-btn").onclick = handleSaveWeeklyGoal;
 
   renderChart14();
+}
+
+async function handleSaveWeeklyGoal(){
+  const statusEl = document.getElementById("goal-save-status");
+  const focus = document.getElementById("goal-focus").value.trim();
+  const goal = document.getElementById("goal-text").value.trim();
+  const daysRaw = document.getElementById("goal-days").value;
+  const days = daysRaw ? Math.max(1, Math.min(7, parseInt(daysRaw, 10))) : null;
+
+  statusEl.textContent = "Speichere …";
+  statusEl.className = "save-status";
+
+  const { error } = await saveWeeklyGoal(focus, goal, days);
+
+  if (error){
+    statusEl.textContent = "Fehler: " + error.message;
+    return;
+  }
+  statusEl.textContent = "Gespeichert ✓";
+  statusEl.className = "save-status ok";
+  renderContent();
 }
 
 function renderPawStreak(streak){
@@ -541,49 +739,109 @@ function renderPawStreak(streak){
   return html + (rest ? `<span style="font-family:var(--font-mono); font-size:12px; color:var(--ink-soft); margin-left:4px;">${rest}</span>` : "");
 }
 
-function renderCategoryStats(categoryCounts){
-  return CATEGORIES.map(c => `
-    <div class="cat-stat-card">
-      <div class="cat-stat-value">${categoryCounts[c.key]}<span class="cat-stat-unit">${c.countUnit}</span></div>
-      <div class="cat-stat-label">${c.countLabel}</div>
-    </div>
-  `).join("");
+function renderCategoryStats(categoryCounts, categoryReps){
+  return CATEGORIES.map(c => {
+    const extra = c.trackReps
+      ? `
+        <div class="cat-stat-extra">
+          <span>Σ ${categoryReps[c.key].totalReps} ${c.repsLabel === "Sequenzen/Minuten" ? "gesamt" : "Wdh."}</span>
+          <span>Ø ${categoryReps[c.key].avgReps}/Tag</span>
+          ${categoryReps[c.key].avgSuccessRate !== null ? `<span class="cat-stat-success${categoryReps[c.key].avgSuccessRate >= 70 ? ' good' : ''}">Ø ${categoryReps[c.key].avgSuccessRate}% erfolgreich</span>` : ""}
+        </div>
+      `
+      : "";
+    return `
+      <div class="cat-stat-card">
+        <div class="cat-stat-value">${categoryCounts[c.key]}<span class="cat-stat-unit">${c.countUnit}</span></div>
+        <div class="cat-stat-label">${c.countLabel}</div>
+        ${extra}
+      </div>
+    `;
+  }).join("");
 }
 
 let selectedDate = todayISO();
 let checklistState = {};
 
 function renderChecklist(entry){
-  CATEGORIES.forEach(c => { checklistState[c.key] = !!entry[c.key]; });
+  CATEGORIES.forEach(c => {
+    checklistState[c.key] = !!entry[c.key];
+    if (c.trackReps){
+      checklistState[c.key + "_reps"] = entry[c.key + "_reps"] ?? "";
+      checklistState[c.key + "_success"] = entry[c.key + "_success"] ?? "";
+    }
+  });
   paintChecklist();
+}
+
+function successRateText(reps, success){
+  const r = Number(reps), s = Number(success);
+  if (!reps || success === "" || success === null || success === undefined || isNaN(s)) return "";
+  const pct = Math.round((s / r) * 100);
+  return `${pct}% erfolgreich${pct >= 70 ? " ✓" : ""}`;
 }
 
 function paintChecklist(){
   const el = document.getElementById("checklist");
   if (!el) return;
   el.innerHTML = CATEGORIES.map(c => `
-    <label class="check-item ${checklistState[c.key] ? 'active' : ''}" data-key="${c.key}">
-      <input type="checkbox" ${checklistState[c.key] ? "checked" : ""} data-key="${c.key}" />
-      <span class="txt">${c.label}${c.hint ? `<span class="hint">${c.hint}</span>` : ""}</span>
-    </label>
+    <div class="check-item ${checklistState[c.key] ? 'active' : ''}" data-key="${c.key}">
+      <label class="check-item-header">
+        <input type="checkbox" ${checklistState[c.key] ? "checked" : ""} data-key="${c.key}" />
+        <span class="txt">${c.label}${c.hint ? `<span class="hint">${c.hint}</span>` : ""}</span>
+      </label>
+      ${c.trackReps ? `
+        <div class="reps-row">
+          <div class="reps-field">
+            <label>${c.repsLabel}</label>
+            <input type="number" min="0" class="reps-input" data-key="${c.key}" data-role="reps" value="${checklistState[c.key + '_reps']}" placeholder="0" />
+          </div>
+          <div class="reps-field">
+            <label>${c.successLabel}</label>
+            <input type="number" min="0" class="reps-input" data-key="${c.key}" data-role="success" value="${checklistState[c.key + '_success']}" placeholder="0" />
+          </div>
+          <div class="reps-rate" data-rate-for="${c.key}">${successRateText(checklistState[c.key + '_reps'], checklistState[c.key + '_success'])}</div>
+        </div>
+      ` : ""}
+    </div>
   `).join("");
 
   el.querySelectorAll("input[type=checkbox]").forEach(input => {
     input.onchange = () => {
       const key = input.dataset.key;
       checklistState[key] = input.checked;
-      paintChecklist();
+      input.closest(".check-item").classList.toggle("active", input.checked);
+    };
+  });
+
+  el.querySelectorAll(".reps-input").forEach(input => {
+    input.oninput = () => {
+      const key = input.dataset.key;
+      const role = input.dataset.role;
+      checklistState[`${key}_${role}`] = input.value;
+      const rateEl = el.querySelector(`.reps-rate[data-rate-for="${key}"]`);
+      if (rateEl) rateEl.textContent = successRateText(checklistState[`${key}_reps`], checklistState[`${key}_success`]);
     };
   });
 }
 
 async function saveEntry(){
   const statusEl = document.getElementById("save-status");
+  const confirmEl = document.getElementById("save-confirmation");
+  confirmEl.style.display = "none";
   statusEl.textContent = "Speichere …";
   statusEl.className = "save-status";
 
-  const row = { user_id: currentUser.id, entry_date: selectedDate };
-  CATEGORIES.forEach(c => { row[c.key] = !!checklistState[c.key]; });
+  const row = { user_id: currentUser.id, entry_date: selectedDate, reflexion: reflexionText || null };
+  CATEGORIES.forEach(c => {
+    row[c.key] = !!checklistState[c.key];
+    if (c.trackReps){
+      const repsVal = checklistState[c.key + "_reps"];
+      const successVal = checklistState[c.key + "_success"];
+      row[c.key + "_reps"] = (repsVal === "" || repsVal === null || repsVal === undefined) ? null : parseInt(repsVal, 10);
+      row[c.key + "_success"] = (successVal === "" || successVal === null || successVal === undefined) ? null : parseInt(successVal, 10);
+    }
+  });
 
   const { error } = await sb
     .from("training_entries")
@@ -595,8 +853,8 @@ async function saveEntry(){
   }
 
   await loadEntries();
-  statusEl.textContent = "Gespeichert ✓";
-  statusEl.className = "save-status ok";
+  statusEl.textContent = "";
+  confirmEl.style.display = "block";
   renderChart14();
   document.querySelector(".table-scroll").innerHTML = renderHistoryTable();
   updateStatCardsOnly();
@@ -604,6 +862,7 @@ async function saveEntry(){
 
 function updateStatCardsOnly(){
   const stats = computeStats();
+  const goalTarget = weeklyGoal?.target_days || null;
   const grid = document.querySelector(".stats-grid-top");
   if (grid){
     grid.innerHTML = `
@@ -616,11 +875,15 @@ function updateStatCardsOnly(){
         <div class="value">${stats.streak}<span class="unit">Tage in Folge</span></div>
         <div class="paw-streak">${renderPawStreak(stats.streak)}</div>
       </div>
+      <div class="stat-card">
+        <div class="label">Wochenziel</div>
+        <div class="value">${stats.weekDaysTrained}<span class="unit">${goalTarget ? `von ${goalTarget} Tagen` : 'Tage diese Woche'}</span></div>
+      </div>
     `;
   }
   const catGrid = document.querySelector(".category-stats-grid");
   if (catGrid){
-    catGrid.innerHTML = renderCategoryStats(stats.categoryCounts);
+    catGrid.innerHTML = renderCategoryStats(stats.categoryCounts, stats.categoryReps);
   }
 }
 
@@ -662,6 +925,23 @@ function renderChart14(){
   });
 }
 
+function renderCategoryCell(entry, c){
+  if (c.trackReps){
+    const reps = entry[c.key + "_reps"];
+    const success = entry[c.key + "_success"];
+    if (reps !== null && reps !== undefined){
+      if (success !== null && success !== undefined){
+        const pct = reps ? Math.round((success / reps) * 100) : 0;
+        return `<span class="${pct >= 70 ? 'reps-cell good' : 'reps-cell'}">${success}/${reps}<span class="reps-cell-pct">${pct}%</span></span>`;
+      }
+      return `<span class="reps-cell">${reps}</span>`;
+    }
+    // Ältere Einträge ohne Wiederholungszahlen: Fallback auf einfachen Punkt
+    return `<span class="dot ${entry[c.key] ? 'yes' : 'no'}"></span>`;
+  }
+  return `<span class="dot ${entry[c.key] ? 'yes' : 'no'}"></span>`;
+}
+
 function renderHistoryTable(){
   if (!currentEntries.length){
     return `<div class="empty-state">Noch keine Einträge vorhanden. Trag dein erstes Training oben ein!</div>`;
@@ -673,13 +953,15 @@ function renderHistoryTable(){
         <tr>
           <th>Datum</th>
           ${CATEGORIES.map(c => `<th>${c.label}</th>`).join("")}
+          <th>Reflexion</th>
         </tr>
       </thead>
       <tbody>
         ${sorted.map(e => `
           <tr>
             <td><strong>${formatDateDE(e.entry_date)}</strong></td>
-            ${CATEGORIES.map(c => `<td><span class="dot ${e[c.key] ? 'yes' : 'no'}"></span></td>`).join("")}
+            ${CATEGORIES.map(c => `<td>${renderCategoryCell(e, c)}</td>`).join("")}
+            <td class="reflexion-cell">${e.reflexion ? escapeHtml(e.reflexion) : "–"}</td>
           </tr>
         `).join("")}
       </tbody>
