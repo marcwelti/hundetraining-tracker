@@ -144,20 +144,35 @@
     padding: 24px 26px; margin-bottom: 24px;
   }
   section.panel h2{ font-size: 19px; margin-bottom: 4px; }
+
+  .guide-grid{ display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  @media (max-width: 860px){ .guide-grid{ grid-template-columns: 1fr; } }
+  .guide-card{ border-radius: 11px; padding: 16px 18px; border: 1px solid var(--line); }
+  .guide-card h3{ font-family: var(--font-body); font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; margin-bottom: 10px; color: var(--ink); }
+  .guide-card ul{ margin: 0; padding-left: 18px; }
+  .guide-card li{ font-size: 13.5px; line-height: 1.5; margin-bottom: 7px; color: var(--ink); }
+  .guide-card li:last-child{ margin-bottom: 0; }
+  .guide-orange{ background: #FBEEDD; border-color: #F0D9B5; }
+  .guide-orange h3{ color: #8A5A17; }
+  .guide-green{ background: #E9F3E6; border-color: #C9E3C2; }
+  .guide-green h3{ color: #3C6B33; }
+  .guide-blue{ background: #E6EEF6; border-color: #C3D7EC; }
+  .guide-blue h3{ color: #2C5680; }
   section.panel p.panel-sub{ color: var(--ink-soft); font-size: 13px; margin: 0 0 18px; }
 
   .checklist{ display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px 18px; margin-bottom: 20px; }
   @media (max-width: 640px){ .checklist{ grid-template-columns: 1fr; } }
 
   .check-item{
-    display:flex; align-items:center; gap: 10px;
+    display:flex; align-items:flex-start; gap: 10px;
     padding: 10px 12px; border: 1px solid var(--line); border-radius: 9px;
     cursor: pointer; transition: all .15s ease; background: #FFFDF9;
   }
   .check-item:hover{ border-color: var(--primary); }
   .check-item.active{ background: var(--primary-soft); border-color: var(--primary); }
-  .check-item input{ width: 17px; height: 17px; accent-color: var(--primary); flex-shrink:0; }
+  .check-item input{ width: 17px; height: 17px; accent-color: var(--primary); flex-shrink:0; margin-top: 2px; }
   .check-item .txt{ font-size: 14px; }
+  .check-item .txt .hint{ display:block; font-size: 11.5px; color: var(--ink-soft); font-weight: 400; margin-top: 2px; }
 
   .save-row{ display:flex; align-items:center; gap: 14px; }
   .save-row .save-btn{
@@ -206,10 +221,10 @@ const SUPABASE_URL = "https://mtgwefeyaifzfwslvxeu.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_HjdiBOY49tGgqUG1xhPhHQ_GyAvBNq7";
 
 const CATEGORIES = [
-  { key: "sitz_platz",        label: "Sitz/Platz geübt" },
-  { key: "hundebett",         label: "Hundebett geübt" },
-  { key: "abrufen",           label: "Abrufen geübt" },
-  { key: "fuss",              label: "Fuss geübt" },
+  { key: "sitz_platz",        label: "Sitz/Platz geübt", hint: "mind. 10–20x pro Spaziergang" },
+  { key: "hundebett",         label: "Hundebett geübt", hint: "mind. 5x" },
+  { key: "abrufen",           label: "Abrufen geübt", hint: "mind. 10–20x pro Spaziergang" },
+  { key: "fuss",              label: "Fuss geübt", hint: "mind. 3–5x pro Spaziergang" },
   { key: "lernvideo",         label: "Lernvideo geschaut" },
   { key: "zoomcall_aufnahme", label: "Zoomcall Aufnahme gehört" },
   { key: "zoomcall_live",     label: "Zoomcall Live gehört" },
@@ -433,6 +448,41 @@ function renderContent(){
       </div>
     </div>
 
+    <section class="panel guide-panel">
+      <h2>Trainingsanleitung</h2>
+      <p class="panel-sub">So gehst du am effektivsten vor.</p>
+      <div class="guide-grid">
+        <div class="guide-card guide-orange">
+          <h3>Vorgehensweise des Trainings</h3>
+          <ul>
+            <li>Zuerst nur Sitz und Hundebett üben.</li>
+            <li>Sobald du bei der Sitzübung 10 Schritte ohne Probleme weglaufen kannst, beginne mit dem Abrufen aus dem Sitz.</li>
+            <li>Sobald das Abrufen aus dem Sitz 7/10 funktioniert, beginnst du mit dem Abrufen aus dem Frei.</li>
+            <li>Sobald der Abruf mind. 7/10 funktioniert, beginnst du mit den Fussübungen.</li>
+            <li>2–3 Trainingseinheiten (Spaziergänge) pro Tag: 2x 45min oder 3x 30min.</li>
+          </ul>
+        </div>
+        <div class="guide-card guide-green">
+          <h3>Mitgliederbereich</h3>
+          <ul>
+            <li>Alle Lernvideos so schnell wie möglich der Reihe nach durchschauen.</li>
+            <li>Notizen machen von den wichtigsten Punkten.</li>
+            <li>Übungen so wie links beschrieben, strukturiert und so genau wie möglich nach Anleitung durchführen.</li>
+            <li>Fragen aufschreiben und Marc im Live-Call oder im Privattraining fragen stellen.</li>
+            <li>Mind. 5 Zoomcalls als Aufnahme hören.</li>
+            <li>Alle Dokumente anschauen und studieren. Die Wörterliste ausfüllen.</li>
+          </ul>
+        </div>
+        <div class="guide-card guide-blue">
+          <h3>Training mit Marc</h3>
+          <ul>
+            <li>Sobald du alle Lerninhalte angeschaut hast und mit dem Training nicht mehr weiterkommst, ist es Zeit für das 1. Privattraining mit Marc.</li>
+            <li>Marc gibt dir dann das OK für das Gruppentraining, sobald du bereit bist.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
     <section class="panel">
       <h2>Training eintragen</h2>
       <p class="panel-sub">Wähle das Datum und hake ab, was ihr geübt habt.</p>
@@ -494,7 +544,7 @@ function paintChecklist(){
   el.innerHTML = CATEGORIES.map(c => `
     <label class="check-item ${checklistState[c.key] ? 'active' : ''}" data-key="${c.key}">
       <input type="checkbox" ${checklistState[c.key] ? "checked" : ""} data-key="${c.key}" />
-      <span class="txt">${c.label}</span>
+      <span class="txt">${c.label}${c.hint ? `<span class="hint">${c.hint}</span>` : ""}</span>
     </label>
   `).join("");
 
