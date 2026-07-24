@@ -66,8 +66,12 @@
   }
   header.topbar .brand{ display:flex; align-items:center; gap:10px; min-width: 0; }
   header.topbar .brand svg, header.topbar .brand img{ width:32px; height:32px; display:block; flex-shrink: 0; }
-  header.topbar .brand-text{ font-family: var(--font-display); font-size: 20px; font-weight:700; color: var(--primary-dark); letter-spacing: -0.01em; }
-  @media (max-width: 480px){ header.topbar .brand-text{ font-size: 16px; } }
+  header.topbar .brand-text{ font-family: var(--font-display); font-size: 18px; font-weight:700; color: var(--primary-dark); letter-spacing: -0.01em; display:flex; flex-direction: column; line-height: 1.25; }
+  header.topbar .brand-subtext{ font-family: var(--font-body); font-size: 12.5px; font-weight: 500; color: var(--ink-soft); letter-spacing: 0; margin-top: 2px; }
+  @media (max-width: 480px){
+    header.topbar .brand-text{ font-size: 15px; }
+    header.topbar .brand-subtext{ font-size: 11px; }
+  }
   header.topbar .user-box{ display:flex; align-items:center; gap:14px; font-size:14px; color: var(--ink-soft); }
   header.topbar .logout-btn{
     background:none; border:1px solid var(--line); color: var(--ink);
@@ -914,7 +918,7 @@ async function renderApp(){
   root.innerHTML = `
     <div class="app-shell">
       <header class="topbar">
-        <div class="brand">${brandMark}<span class="brand-text">Marc Welti Hundetraining Tracker</span></div>
+        <div class="brand">${brandMark}<span class="brand-text">Marc Welti Hundetraining – Der Hund ohne Leine<span class="brand-subtext">Dein persönlicher Trainingsbegleiter</span></span></div>
         <div class="user-box">
           <span>${currentUser.email}</span>
           <button class="logout-btn" id="logout-btn">Abmelden</button>
