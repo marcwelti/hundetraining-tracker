@@ -933,10 +933,28 @@ async function renderApp(){
     await sb.auth.signOut();
   };
 
-  await loadEntries();
-  await loadWeeklyGoals();
-  await loadExerciseProgress();
-  renderContent();
+  try {
+    await loadEntries();
+  } catch (err) {
+    console.error("Fehler beim Laden der Trainingseinträge:", err);
+  }
+  try {
+    await loadWeeklyGoals();
+  } catch (err) {
+    console.error("Fehler beim Laden der Wochenziele:", err);
+  }
+  try {
+    await loadExerciseProgress();
+  } catch (err) {
+    console.error("Fehler beim Laden des Übungsfortschritts:", err);
+  }
+  try {
+    renderContent();
+  } catch (err) {
+    console.error("Fehler beim Anzeigen der Trainingsdaten:", err);
+    document.getElementById("content").innerHTML =
+      `<div class="auth-error">Beim Anzeigen ist etwas schiefgelaufen. Bitte lade die Seite neu (Cmd+Shift+R). Fehler: ${escapeHtml(err.message || String(err))}</div>`;
+  }
   renderWeeklyGoalModal();
 }
 
