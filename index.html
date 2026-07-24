@@ -1054,8 +1054,8 @@ function renderWeeklyGoalModal(){
           <input type="text" id="modal-goal-text" placeholder="z.B. Abruf auf 7/10 bringen" value="${lastGoal?.goal ? escapeAttr(lastGoal.goal) : ''}" />
         </div>
         <div class="field">
-          <label>Mein grösster Stolperstein diese Woche</label>
-          <input type="text" id="modal-goal-stolperstein" placeholder="z.B. Übungen nicht sauber auflösen" value="${lastGoal?.stolperstein ? escapeAttr(lastGoal.stolperstein) : ''}" />
+          <label>Mein grösster Stolperstein</label>
+          <input type="text" id="modal-goal-stolperstein" placeholder="z.B. 3. Stufe zu wenig klar" value="${lastGoal?.stolperstein ? escapeAttr(lastGoal.stolperstein) : ''}" />
         </div>
         <div class="modal-actions">
           <button class="primary-btn" id="modal-goal-save">Wochenziel speichern</button>
@@ -1153,8 +1153,8 @@ function renderContent(){
           <input type="text" id="goal-text" placeholder="z.B. Abruf auf 7/10 bringen" value="${currentWeekGoal?.goal ? escapeAttr(currentWeekGoal.goal) : ''}" />
         </div>
         <div class="field">
-          <label>Mein grösster Stolperstein diese Woche</label>
-          <input type="text" id="goal-stolperstein" placeholder="z.B. Übungen nicht sauber auflösen" value="${currentWeekGoal?.stolperstein ? escapeAttr(currentWeekGoal.stolperstein) : ''}" />
+          <label>Mein grösster Stolperstein</label>
+          <input type="text" id="goal-stolperstein" placeholder="z.B. 3. Stufe zu wenig klar" value="${currentWeekGoal?.stolperstein ? escapeAttr(currentWeekGoal.stolperstein) : ''}" />
         </div>
       </div>
       <div class="save-row">
@@ -1163,9 +1163,9 @@ function renderContent(){
       </div>
       ${currentWeekGoal?.focus || currentWeekGoal?.goal || currentWeekGoal?.stolperstein ? `
         <div class="goal-display">
-          ${currentWeekGoal.focus ? `<div><span class="goal-display-label">Fokus:</span> ${escapeHtml(currentWeekGoal.focus)}</div>` : ""}
-          ${currentWeekGoal.goal ? `<div><span class="goal-display-label">Ziel:</span> ${escapeHtml(currentWeekGoal.goal)}</div>` : ""}
-          ${currentWeekGoal.stolperstein ? `<div><span class="goal-display-label">Stolperstein:</span> ${escapeHtml(currentWeekGoal.stolperstein)}</div>` : ""}
+          <div><span class="goal-display-label">Fokus:</span> ${currentWeekGoal.focus ? escapeHtml(currentWeekGoal.focus) : "–"}</div>
+          <div><span class="goal-display-label">Ziel:</span> ${currentWeekGoal.goal ? escapeHtml(currentWeekGoal.goal) : "–"}</div>
+          <div><span class="goal-display-label">Stolperstein:</span> ${currentWeekGoal.stolperstein ? escapeHtml(currentWeekGoal.stolperstein) : "–"}</div>
         </div>
       ` : ""}
       ${pastGoals.length ? `
@@ -1175,9 +1175,9 @@ function renderContent(){
             ${pastGoals.map(g => `
               <li>
                 <span class="goal-history-week">Woche vom ${formatDateDE(g.week_start)}</span>
-                ${g.focus ? `<span class="goal-history-detail"><strong>Fokus:</strong> ${escapeHtml(g.focus)}</span>` : ""}
-                ${g.goal ? `<span class="goal-history-detail"><strong>Ziel:</strong> ${escapeHtml(g.goal)}</span>` : ""}
-                ${g.stolperstein ? `<span class="goal-history-detail"><strong>Stolperstein:</strong> ${escapeHtml(g.stolperstein)}</span>` : ""}
+                <span class="goal-history-detail"><strong>Fokus:</strong> ${g.focus ? escapeHtml(g.focus) : "–"}</span>
+                <span class="goal-history-detail"><strong>Ziel:</strong> ${g.goal ? escapeHtml(g.goal) : "–"}</span>
+                <span class="goal-history-detail"><strong>Stolperstein:</strong> ${g.stolperstein ? escapeHtml(g.stolperstein) : "–"}</span>
               </li>
             `).join("")}
           </ul>
