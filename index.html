@@ -1132,6 +1132,7 @@ function renderContent(){
   const stats = computeStats();
   const today = todayISO();
   const todaysEntry = currentEntries.find(e => e.entry_date === selectedDate) || {};
+  const goalTarget = currentWeekGoal?.target_days || null;
   const week = getWeekRange();
   const pastGoals = weeklyGoals.filter(g => g.week_start !== week.start);
 
