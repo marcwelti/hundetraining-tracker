@@ -303,6 +303,25 @@
     .lever-btn{ flex: 1; padding: 10px 6px; font-size: 11px; }
   }
 
+  /* ---------- Selbstcheck-Liste ---------- */
+  .system-check-progress{
+    display:inline-block; font-size: 12px; font-weight: 700; color: var(--ink-soft);
+    background: var(--primary-soft); padding: 4px 12px; border-radius: 999px;
+    margin-bottom: 16px;
+  }
+  .system-check-list{ display:flex; flex-direction: column; gap: 8px; }
+  .system-check-item{
+    display:flex; align-items:flex-start; gap: 10px;
+    padding: 11px 14px; border: 1px solid var(--line); border-radius: 9px;
+    background: #FFFDF9; cursor: pointer; transition: all .15s ease;
+  }
+  .system-check-item:hover{ border-color: var(--primary); }
+  .system-check-item.checked{ background: #E9F3E6; border-color: #C9E3C2; }
+  .system-check-item input{ width: 17px; height: 17px; accent-color: var(--primary); flex-shrink:0; margin-top: 2px; }
+  .system-check-number{ font-family: var(--font-mono); font-weight: 700; color: var(--ink-soft); flex-shrink: 0; }
+  .system-check-text{ font-size: 13.5px; line-height: 1.5; color: var(--ink); }
+  .system-check-item.checked .system-check-text{ color: #3C6B33; }
+
   /* ---------- Wochenziel-Popup ---------- */
   .modal-overlay{
     position: fixed; inset: 0; background: rgba(15,13,11,0.55);
@@ -639,6 +658,42 @@ const EXERCISE_LEVEL_LABELS = {
   3: "Ziel erreicht",
 };
 
+// ============================================================
+// SELBSTCHECK-LISTE — "Fehler im System finden"
+// ============================================================
+const SYSTEM_CHECK_ITEMS = [
+  "Ich gebe kein Futter mehr, ausser zum Ernähren.",
+  "Sobald ich ein Wort gesagt habe, fordere ich es ein und wechsle nicht das Wort.",
+  "Ich habe so oft wie von Marc vorgegeben geübt.",
+  "Ich bin 100% konsequent, vergesse also nie, ein Kommando aufzulösen.",
+  "Ich habe keine leeren Wörter und fordere alles ein, was ich meinem Hund den ganzen Tag sage.",
+  "Alle Personen, die sich mit dem Hund abgeben, haben das selbe Wissen und machen alles gleich.",
+  "Ich habe mir alle Lerninhalte angeschaut und kenne deren Inhalt.",
+  "Ich habe mindestens 5 Zoomcalls gehört.",
+  "Ich streichle und lobe nicht, wenn der Hund in einem Kommando ist, und verstehe weshalb.",
+  "Meine Konsequenzen sind energisch genug und dem Hund nicht egal.",
+  "Ich fordere das Abrufen korrekt nach Anleitung ein.",
+  "Ich arbeite sehr genau. (Beim Sitz nicht am Boden schnüffeln, korrekte Position beim „Hier“ und im Fuss etc.)",
+  "Ich reagiere bei Fehlverhalten immer – nicht nur ab und zu und je nach eigener Stimmung/Verfassung.",
+  "Ich übe weder zu schwierig noch zu einfach.",
+  "Ich versuche, den Schwierigkeitslevel so oft es geht zu steigern, und übe nicht immer nur das, was bereits funktioniert.",
+  "Ich gebe dem sozialen Druck nicht nach und werde nicht inkonsequent, wenn andere Menschen dabei sind.",
+  "Ich lasse meinen Hund nicht drängelnd aus der Tür stürmen.",
+  "Ich beginne bereits zu Beginn des Spaziergangs mit Übungen, um dem Hund eine Struktur zu geben.",
+  "Ich spiele nur mit meinem Hund, wenn er dabei allgemein nicht zu triebig und nervös wird, beim oder nach dem Spielen.",
+  "Ich nehme meinen Hund ernst und kann ihn objektiv so sehen, wie er ist. (Kein Baby, Prinz oder was auch immer.)",
+  "Ich reflektiere mich selbst regelmässig und kann mich gut und ehrlich einschätzen.",
+  "Ich suche die Fehler bei mir und nicht bei anderen. Mein Ziel ist es, mich zu verbessern und zu optimieren.",
+  "Ich arbeite nach Plan und lasse mir nicht von anderen reinreden oder füge eigene Sachen hinzu.",
+  "Ich habe ein klares Ziel und sehe das grosse Ganze. Mir ist bewusst, dass es Phasen gibt und nicht immer alles rund läuft.",
+  "Ich setze meine Prioritäten richtig. Zu Beginn kann es sein, dass man gewisse Dinge weglassen sollte, die Spass machen.",
+  "Ich gehe nicht auf Forderungen meines Hundes ein. (Fragen sind ok.)",
+  "Ich gehe mindestens 2× 45 Min. oder 3× 30 Min. mit meinem Hund spazieren und erfülle somit seine Grundbedürfnisse.",
+  "Ich laufe und trainiere überwiegend an Orten, die für den Hund geeignet sind. (Wald, Feld, Parks etc.)",
+  "Ich spreche mit meiner normalen Stimme mit meinem Hund. (Keine Babystimme etc.)",
+  "Der Hund darf nicht aufs Bett oder das Sofa, solange ich noch Probleme habe.",
+];
+
 function repLevel(catKey, reps){
   if (reps === null || reps === undefined || reps === "") return null;
   const cat = CATEGORIES.find(c => c.key === catKey);
@@ -775,6 +830,63 @@ function wireExerciseCatalog(){
   });
 }
 
+function systemCheckDoneCount(){
+  return SYSTEM_CHECK_ITEMS.filter((_, i) => systemCheckProgress[`check_${i + 1}`]).length;
+}
+
+function renderSystemCheckSection(){
+  const total = SYSTEM_CHECK_ITEMS.length;
+  const done = systemCheckDoneCount();
+  return `
+    <section class="panel system-check-panel">
+      <h2>Fehler im System finden</h2>
+      <p class="panel-sub">Du solltest so schnell wie möglich bei allen Kästchen einen Haken setzen können.</p>
+      <p class="panel-sub">Falls du Fragen zu dieser Liste hast, kannst du sie mir sehr gerne im wöchentlichen Live-Call stellen.</p>
+      <div class="system-check-progress">${done} von ${total} Kästchen gesetzt</div>
+      <div class="system-check-list">
+        ${SYSTEM_CHECK_ITEMS.map((text, i) => {
+          const id = `check_${i + 1}`;
+          const checked = !!systemCheckProgress[id];
+          return `
+            <label class="system-check-item ${checked ? 'checked' : ''}" data-item-id="${id}">
+              <input type="checkbox" ${checked ? "checked" : ""} />
+              <span class="system-check-number">${i + 1}.</span>
+              <span class="system-check-text">${escapeHtml(text)}</span>
+            </label>
+          `;
+        }).join("")}
+      </div>
+    </section>
+  `;
+}
+
+function wireSystemCheckSection(){
+  const panel = document.querySelector(".system-check-panel");
+  if (!panel) return;
+
+  panel.addEventListener("change", async (e) => {
+    const input = e.target.closest("input[type=checkbox]");
+    if (!input) return;
+
+    const item = input.closest(".system-check-item");
+    const id = item.dataset.itemId;
+    const checked = input.checked;
+
+    item.classList.toggle("checked", checked);
+    const progressEl = panel.querySelector(".system-check-progress");
+    if (progressEl){
+      // optimistisch vorab lokal aktualisieren, dann Badge neu berechnen
+      systemCheckProgress[id] = checked;
+      progressEl.textContent = `${systemCheckDoneCount()} von ${SYSTEM_CHECK_ITEMS.length} Kästchen gesetzt`;
+    }
+
+    const { error } = await saveSystemCheckItem(id, checked);
+    if (error){
+      console.error("Fehler beim Speichern der Selbstcheck-Liste:", error.message);
+    }
+  });
+}
+
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const root = document.getElementById("root");
@@ -847,6 +959,7 @@ let weeklyGoals = []; // Verlauf aller bisherigen Wochenziele (neueste zuerst)
 let currentWeekGoal = null; // Ziel für die aktuell laufende Kalenderwoche, falls vorhanden
 let weeklyGoalModalDismissed = false; // nur für die aktuelle Sitzung ("Später")
 let exerciseProgress = {}; // Map: exercise_id -> Stufe (1, 2 oder 3)
+let systemCheckProgress = {}; // Map: item-index -> true/false
 let reflexionText = "";
 
 /* =========================================================
@@ -965,6 +1078,11 @@ async function renderApp(){
     console.error("Fehler beim Laden des Übungsfortschritts:", err);
   }
   try {
+    await loadSystemCheckProgress();
+  } catch (err) {
+    console.error("Fehler beim Laden der Selbstcheck-Liste:", err);
+  }
+  try {
     renderContent();
   } catch (err) {
     console.error("Fehler beim Anzeigen der Trainingsdaten:", err);
@@ -1008,6 +1126,29 @@ async function saveExerciseLevel(exerciseId, level){
     .upsert(
       { user_id: currentUser.id, exercise_id: exerciseId, level, updated_at: new Date().toISOString() },
       { onConflict: "user_id,exercise_id" }
+    );
+  return { error };
+}
+
+async function loadSystemCheckProgress(){
+  const { data, error } = await sb
+    .from("system_check_progress")
+    .select("item_id, checked")
+    .eq("user_id", currentUser.id);
+
+  systemCheckProgress = {};
+  if (!error && data){
+    data.forEach(row => { systemCheckProgress[row.item_id] = row.checked; });
+  }
+}
+
+async function saveSystemCheckItem(itemId, checked){
+  systemCheckProgress[itemId] = checked; // optimistisch sofort übernehmen
+  const { error } = await sb
+    .from("system_check_progress")
+    .upsert(
+      { user_id: currentUser.id, item_id: itemId, checked, updated_at: new Date().toISOString() },
+      { onConflict: "user_id,item_id" }
     );
   return { error };
 }
@@ -1261,6 +1402,8 @@ function renderContent(){
 
     ${renderExerciseCatalog()}
 
+    ${renderSystemCheckSection()}
+
     <section class="panel">
       <h2>Training eintragen</h2>
       <p class="panel-sub">Wähle das Datum und hake ab, was ihr geübt habt.</p>
@@ -1298,6 +1441,7 @@ function renderContent(){
 
   renderChecklist(todaysEntry);
   wireExerciseCatalog();
+  wireSystemCheckSection();
   reflexionText = todaysEntry.reflexion || "";
   document.getElementById("reflexion-input").value = reflexionText;
   document.getElementById("reflexion-input").oninput = (e) => {
