@@ -305,6 +305,10 @@
 
   /* ---------- Selbstcheck-Liste ---------- */
   .system-check-list{ display:flex; flex-direction: column; gap: 8px; padding: 4px 4px 14px; }
+  .system-check-complete-banner{
+    margin: 4px 4px 14px; padding: 12px 16px; border-radius: 9px;
+    background: #E9F3E6; color: #3C6B33; font-weight: 700; font-size: 13.5px;
+  }
   .system-check-item{
     display:flex; align-items:flex-start; gap: 10px;
     padding: 11px 14px; border: 1px solid var(--line); border-radius: 9px;
@@ -829,9 +833,15 @@ function systemCheckDoneCount(){
   return SYSTEM_CHECK_ITEMS.filter((_, i) => systemCheckProgress[`check_${i + 1}`]).length;
 }
 
+function systemCheckBadgeText(done, total){
+  const pct = total ? Math.round((done / total) * 100) : 0;
+  return `${done} von ${total} Kästchen gesetzt (${pct}%)`;
+}
+
 function renderSystemCheckSection(){
   const total = SYSTEM_CHECK_ITEMS.length;
   const done = systemCheckDoneCount();
+  const allDone = done === total;
   return `
     <section class="panel system-check-panel">
       <h2>Fehler im System finden</h2>
@@ -840,8 +850,9 @@ function renderSystemCheckSection(){
       <details class="exercise-block">
         <summary>
           <span class="exercise-block-title">Checkliste anzeigen</span>
-          <span class="exercise-block-progress">${done} von ${total} Kästchen gesetzt</span>
+          <span class="exercise-block-progress">${systemCheckBadgeText(done, total)}</span>
         </summary>
+        <div class="system-check-complete-banner" style="${allDone ? '' : 'display:none;'}">Perfekt! Du hast alle Kästchen gesetzt – dein System läuft rund. 🎉</div>
         <div class="system-check-list">
           ${SYSTEM_CHECK_ITEMS.map((text, i) => {
             const id = `check_${i + 1}`;
@@ -873,11 +884,17 @@ function wireSystemCheckSection(){
     const checked = input.checked;
 
     item.classList.toggle("checked", checked);
+    systemCheckProgress[id] = checked; // optimistisch vorab lokal aktualisieren
+
     const progressEl = panel.querySelector(".exercise-block-progress");
+    const done = systemCheckDoneCount();
+    const total = SYSTEM_CHECK_ITEMS.length;
     if (progressEl){
-      // optimistisch vorab lokal aktualisieren, dann Badge neu berechnen
-      systemCheckProgress[id] = checked;
-      progressEl.textContent = `${systemCheckDoneCount()} von ${SYSTEM_CHECK_ITEMS.length} Kästchen gesetzt`;
+      progressEl.textContent = systemCheckBadgeText(done, total);
+    }
+    const bannerEl = panel.querySelector(".system-check-complete-banner");
+    if (bannerEl){
+      bannerEl.style.display = (done === total) ? "block" : "none";
     }
 
     const { error } = await saveSystemCheckItem(id, checked);
