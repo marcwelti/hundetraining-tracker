@@ -192,6 +192,48 @@
     font-size: 13.5px; line-height: 1.6;
   }
   .goal-display-label{ font-weight: 700; color: var(--primary-dark); }
+
+  .goal-history{ margin-top: 16px; padding-top: 14px; border-top: 1px solid #E4C88C; }
+  .goal-history summary{
+    cursor: pointer; font-size: 13px; font-weight: 700; color: var(--primary-dark);
+    list-style: none;
+  }
+  .goal-history summary::-webkit-details-marker{ display:none; }
+  .goal-history summary::before{ content: "▸ "; }
+  .goal-history[open] summary::before{ content: "▾ "; }
+  .goal-history-list{ list-style:none; margin: 12px 0 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+  .goal-history-list li{
+    background: #FFFDF9; border: 1px solid #E4C88C; border-radius: 8px;
+    padding: 9px 12px; font-size: 12.5px; display:flex; flex-direction: column; gap: 3px;
+  }
+  .goal-history-week{ font-weight: 700; color: var(--ink); font-size: 12px; }
+  .goal-history-detail{ color: var(--ink-soft); }
+  .goal-history-detail strong{ color: var(--ink); font-weight: 600; }
+
+  /* ---------- Wochenziel-Popup ---------- */
+  .modal-overlay{
+    position: fixed; inset: 0; background: rgba(15,13,11,0.55);
+    display:flex; align-items:center; justify-content:center;
+    padding: 20px; z-index: 1000;
+  }
+  .modal-card{
+    background: var(--surface); border-radius: var(--radius);
+    max-width: 440px; width: 100%; padding: 32px 30px;
+    box-shadow: 0 20px 60px rgba(15,13,11,0.3);
+    max-height: 90vh; overflow-y: auto;
+  }
+  .modal-card .modal-paw{ width: 34px; height: 34px; margin-bottom: 14px; }
+  .modal-card .modal-paw svg{ width: 100%; height: 100%; fill: var(--accent); }
+  .modal-card h2{ font-size: 22px; margin-bottom: 8px; }
+  .modal-card .modal-sub{ font-size: 13.5px; color: var(--ink-soft); margin: 0 0 20px; line-height: 1.5; }
+  .modal-card .field{ margin-bottom: 14px; }
+  .modal-actions{ display:flex; align-items:center; gap: 12px; margin-top: 8px; }
+  .modal-actions .primary-btn{ width: auto; flex: 1; }
+  .modal-later-btn{
+    background:none; border:none; color: var(--ink-soft); font-size: 13.5px;
+    text-decoration: underline; padding: 12px 4px; white-space: nowrap;
+  }
+  .modal-card .save-status{ display:block; margin-top: 10px; }
   section.panel p.panel-sub{ color: var(--ink-soft); font-size: 13px; margin: 0 0 18px; }
 
   .checklist{ display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px 18px; margin-bottom: 20px; }
@@ -374,7 +416,9 @@ let currentUser = null;
 let currentEntries = [];
 let chartInstance = null;
 let authMode = "login"; // or "signup"
-let weeklyGoal = null; // { focus, goal, target_days }
+let weeklyGoals = []; // Verlauf aller bisherigen Wochenziele (neueste zuerst)
+let currentWeekGoal = null; // Ziel für die aktuell laufende Kalenderwoche, falls vorhanden
+let weeklyGoalModalDismissed = false; // nur für die aktuelle Sitzung ("Später")
 let reflexionText = "";
 
 /* =========================================================
@@ -471,14 +515,16 @@ async function renderApp(){
       <div id="content"><div class="loading-line">Lade deine Trainingsdaten …</div></div>
       <footer class="app-footer">Was du regelmässig wiederholst, wird zur Gewohnheit.</footer>
     </div>
+    <div id="modal-root"></div>
   `;
   document.getElementById("logout-btn").onclick = async () => {
     await sb.auth.signOut();
   };
 
   await loadEntries();
-  await loadWeeklyGoal();
+  await loadWeeklyGoals();
   renderContent();
+  renderWeeklyGoalModal();
 }
 
 async function loadEntries(){
@@ -496,23 +542,23 @@ async function loadEntries(){
   currentEntries = data || [];
 }
 
-async function loadWeeklyGoal(){
+async function loadWeeklyGoals(){
   const { data, error } = await sb
     .from("weekly_goals")
     .select("*")
     .eq("user_id", currentUser.id)
-    .maybeSingle();
+    .order("week_start", { ascending: false });
 
-  if (!error && data){
-    weeklyGoal = data;
-  } else {
-    weeklyGoal = null;
-  }
+  weeklyGoals = (!error && data) ? data : [];
+  const week = getWeekRange();
+  currentWeekGoal = weeklyGoals.find(g => g.week_start === week.start) || null;
 }
 
 async function saveWeeklyGoal(focus, goal, targetDays){
+  const week = getWeekRange();
   const row = {
     user_id: currentUser.id,
+    week_start: week.start,
     focus: focus || null,
     goal: goal || null,
     target_days: targetDays || null,
@@ -520,11 +566,73 @@ async function saveWeeklyGoal(focus, goal, targetDays){
   };
   const { error } = await sb
     .from("weekly_goals")
-    .upsert(row, { onConflict: "user_id" });
+    .upsert(row, { onConflict: "user_id,week_start" });
 
   if (error) return { error };
-  await loadWeeklyGoal();
+  await loadWeeklyGoals();
   return { error: null };
+}
+
+function renderWeeklyGoalModal(){
+  const modalRoot = document.getElementById("modal-root");
+  if (!modalRoot) return;
+
+  if (currentWeekGoal || weeklyGoalModalDismissed){
+    modalRoot.innerHTML = "";
+    return;
+  }
+
+  const week = getWeekRange();
+  const lastGoal = weeklyGoals[0]; // letztes bekanntes Ziel als Vorschlag, falls vorhanden
+
+  modalRoot.innerHTML = `
+    <div class="modal-overlay">
+      <div class="modal-card">
+        <div class="modal-paw">${pawSVG("filled")}</div>
+        <h2>Neue Trainingswoche</h2>
+        <p class="modal-sub">Woche vom ${formatDateDE(week.start)} bis ${formatDateDE(week.end)} — leg deinen Fokus und dein Ziel für diese Woche fest.</p>
+        <div class="field">
+          <label>Mein Fokus diese Woche</label>
+          <input type="text" id="modal-goal-focus" placeholder="z.B. Ruhe beim Abrufen" value="${lastGoal?.focus ? escapeAttr(lastGoal.focus) : ''}" />
+        </div>
+        <div class="field">
+          <label>Mein Ziel für diese Woche</label>
+          <input type="text" id="modal-goal-text" placeholder="z.B. Abruf auf 7/10 bringen" value="${lastGoal?.goal ? escapeAttr(lastGoal.goal) : ''}" />
+        </div>
+        <div class="field">
+          <label>Gewünschte Trainingstage (von 7)</label>
+          <input type="number" id="modal-goal-days" min="1" max="7" placeholder="z.B. 5" value="${lastGoal?.target_days || ''}" />
+        </div>
+        <div class="modal-actions">
+          <button class="primary-btn" id="modal-goal-save">Wochenziel speichern</button>
+          <button class="modal-later-btn" id="modal-goal-later">Später</button>
+        </div>
+        <span class="save-status" id="modal-goal-status"></span>
+      </div>
+    </div>
+  `;
+
+  document.getElementById("modal-goal-later").onclick = () => {
+    weeklyGoalModalDismissed = true;
+    modalRoot.innerHTML = "";
+  };
+
+  document.getElementById("modal-goal-save").onclick = async () => {
+    const statusEl = document.getElementById("modal-goal-status");
+    const focus = document.getElementById("modal-goal-focus").value.trim();
+    const goal = document.getElementById("modal-goal-text").value.trim();
+    const daysRaw = document.getElementById("modal-goal-days").value;
+    const days = daysRaw ? Math.max(1, Math.min(7, parseInt(daysRaw, 10))) : null;
+
+    statusEl.textContent = "Speichere …";
+    const { error } = await saveWeeklyGoal(focus, goal, days);
+    if (error){
+      statusEl.textContent = "Fehler: " + error.message;
+      return;
+    }
+    modalRoot.innerHTML = "";
+    renderContent();
+  };
 }
 
 function computeStats(){
@@ -571,21 +679,23 @@ function renderContent(){
   const stats = computeStats();
   const today = todayISO();
   const todaysEntry = currentEntries.find(e => e.entry_date === selectedDate) || {};
-  const goalTarget = weeklyGoal?.target_days || null;
+  const goalTarget = currentWeekGoal?.target_days || null;
+  const week = getWeekRange();
+  const pastGoals = weeklyGoals.filter(g => g.week_start !== week.start);
 
   const content = document.getElementById("content");
   content.innerHTML = `
     <section class="panel weekly-goal-panel">
       <h2>Mein Wochenziel</h2>
-      <p class="panel-sub">Dein Fokus und Ziel für diese Woche.</p>
+      <p class="panel-sub">Woche vom ${formatDateDE(week.start)} bis ${formatDateDE(week.end)}.</p>
       <div class="goal-grid">
         <div class="field">
           <label>Mein Fokus diese Woche</label>
-          <input type="text" id="goal-focus" placeholder="z.B. Ruhe beim Abrufen" value="${weeklyGoal?.focus ? escapeAttr(weeklyGoal.focus) : ''}" />
+          <input type="text" id="goal-focus" placeholder="z.B. Ruhe beim Abrufen" value="${currentWeekGoal?.focus ? escapeAttr(currentWeekGoal.focus) : ''}" />
         </div>
         <div class="field">
           <label>Mein Ziel für diese Woche</label>
-          <input type="text" id="goal-text" placeholder="z.B. Abruf auf 7/10 bringen" value="${weeklyGoal?.goal ? escapeAttr(weeklyGoal.goal) : ''}" />
+          <input type="text" id="goal-text" placeholder="z.B. Abruf auf 7/10 bringen" value="${currentWeekGoal?.goal ? escapeAttr(currentWeekGoal.goal) : ''}" />
         </div>
         <div class="field">
           <label>Gewünschte Trainingstage (von 7)</label>
@@ -596,11 +706,26 @@ function renderContent(){
         <button class="save-btn" id="goal-save-btn">Wochenziel speichern</button>
         <span class="save-status" id="goal-save-status"></span>
       </div>
-      ${weeklyGoal?.focus || weeklyGoal?.goal ? `
+      ${currentWeekGoal?.focus || currentWeekGoal?.goal ? `
         <div class="goal-display">
-          ${weeklyGoal.focus ? `<div><span class="goal-display-label">Fokus:</span> ${escapeHtml(weeklyGoal.focus)}</div>` : ""}
-          ${weeklyGoal.goal ? `<div><span class="goal-display-label">Ziel:</span> ${escapeHtml(weeklyGoal.goal)}</div>` : ""}
+          ${currentWeekGoal.focus ? `<div><span class="goal-display-label">Fokus:</span> ${escapeHtml(currentWeekGoal.focus)}</div>` : ""}
+          ${currentWeekGoal.goal ? `<div><span class="goal-display-label">Ziel:</span> ${escapeHtml(currentWeekGoal.goal)}</div>` : ""}
         </div>
+      ` : ""}
+      ${pastGoals.length ? `
+        <details class="goal-history">
+          <summary>Bisherige Wochenziele (${pastGoals.length})</summary>
+          <ul class="goal-history-list">
+            ${pastGoals.map(g => `
+              <li>
+                <span class="goal-history-week">Woche vom ${formatDateDE(g.week_start)}</span>
+                ${g.focus ? `<span class="goal-history-detail"><strong>Fokus:</strong> ${escapeHtml(g.focus)}</span>` : ""}
+                ${g.goal ? `<span class="goal-history-detail"><strong>Ziel:</strong> ${escapeHtml(g.goal)}</span>` : ""}
+                ${g.target_days ? `<span class="goal-history-detail"><strong>Trainingstage-Ziel:</strong> ${g.target_days} von 7</span>` : ""}
+              </li>
+            `).join("")}
+          </ul>
+        </details>
       ` : ""}
     </section>
 
@@ -866,7 +991,7 @@ async function saveEntry(){
 
 function updateStatCardsOnly(){
   const stats = computeStats();
-  const goalTarget = weeklyGoal?.target_days || null;
+  const goalTarget = currentWeekGoal?.target_days || null;
   const grid = document.querySelector(".stats-grid-top");
   if (grid){
     grid.innerHTML = `
