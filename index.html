@@ -304,12 +304,7 @@
   }
 
   /* ---------- Selbstcheck-Liste ---------- */
-  .system-check-progress{
-    display:inline-block; font-size: 12px; font-weight: 700; color: var(--ink-soft);
-    background: var(--primary-soft); padding: 4px 12px; border-radius: 999px;
-    margin-bottom: 16px;
-  }
-  .system-check-list{ display:flex; flex-direction: column; gap: 8px; }
+  .system-check-list{ display:flex; flex-direction: column; gap: 8px; padding: 4px 4px 14px; }
   .system-check-item{
     display:flex; align-items:flex-start; gap: 10px;
     padding: 11px 14px; border: 1px solid var(--line); border-radius: 9px;
@@ -842,20 +837,25 @@ function renderSystemCheckSection(){
       <h2>Fehler im System finden</h2>
       <p class="panel-sub">Du solltest so schnell wie möglich bei allen Kästchen einen Haken setzen können.</p>
       <p class="panel-sub">Falls du Fragen zu dieser Liste hast, kannst du sie mir sehr gerne im wöchentlichen Live-Call stellen.</p>
-      <div class="system-check-progress">${done} von ${total} Kästchen gesetzt</div>
-      <div class="system-check-list">
-        ${SYSTEM_CHECK_ITEMS.map((text, i) => {
-          const id = `check_${i + 1}`;
-          const checked = !!systemCheckProgress[id];
-          return `
-            <label class="system-check-item ${checked ? 'checked' : ''}" data-item-id="${id}">
-              <input type="checkbox" ${checked ? "checked" : ""} />
-              <span class="system-check-number">${i + 1}.</span>
-              <span class="system-check-text">${escapeHtml(text)}</span>
-            </label>
-          `;
-        }).join("")}
-      </div>
+      <details class="exercise-block">
+        <summary>
+          <span class="exercise-block-title">Checkliste anzeigen</span>
+          <span class="exercise-block-progress">${done} von ${total} Kästchen gesetzt</span>
+        </summary>
+        <div class="system-check-list">
+          ${SYSTEM_CHECK_ITEMS.map((text, i) => {
+            const id = `check_${i + 1}`;
+            const checked = !!systemCheckProgress[id];
+            return `
+              <label class="system-check-item ${checked ? 'checked' : ''}" data-item-id="${id}">
+                <input type="checkbox" ${checked ? "checked" : ""} />
+                <span class="system-check-number">${i + 1}.</span>
+                <span class="system-check-text">${escapeHtml(text)}</span>
+              </label>
+            `;
+          }).join("")}
+        </div>
+      </details>
     </section>
   `;
 }
@@ -873,7 +873,7 @@ function wireSystemCheckSection(){
     const checked = input.checked;
 
     item.classList.toggle("checked", checked);
-    const progressEl = panel.querySelector(".system-check-progress");
+    const progressEl = panel.querySelector(".exercise-block-progress");
     if (progressEl){
       // optimistisch vorab lokal aktualisieren, dann Badge neu berechnen
       systemCheckProgress[id] = checked;
@@ -1402,8 +1402,6 @@ function renderContent(){
 
     ${renderExerciseCatalog()}
 
-    ${renderSystemCheckSection()}
-
     <section class="panel">
       <h2>Training eintragen</h2>
       <p class="panel-sub">Wähle das Datum und hake ab, was ihr geübt habt.</p>
@@ -1437,6 +1435,8 @@ function renderContent(){
       <p class="panel-sub">Alle bisherigen Einträge im Überblick.</p>
       <div class="table-scroll">${renderHistoryTable()}</div>
     </section>
+
+    ${renderSystemCheckSection()}
   `;
 
   renderChecklist(todaysEntry);
