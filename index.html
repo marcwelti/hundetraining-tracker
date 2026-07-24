@@ -990,14 +990,14 @@ async function loadWeeklyGoals(){
   currentWeekGoal = weeklyGoals.find(g => g.week_start === week.start) || null;
 }
 
-async function saveWeeklyGoal(focus, goal, targetDays){
+async function saveWeeklyGoal(focus, goal, stolperstein){
   const week = getWeekRange();
   const row = {
     user_id: currentUser.id,
     week_start: week.start,
     focus: focus || null,
     goal: goal || null,
-    target_days: targetDays || null,
+    stolperstein: stolperstein || null,
     updated_at: new Date().toISOString(),
   };
   const { error } = await sb
@@ -1029,15 +1029,15 @@ function renderWeeklyGoalModal(){
         <p class="modal-sub">Woche vom ${formatDateDE(week.start)} bis ${formatDateDE(week.end)} — leg deinen Fokus und dein Ziel für diese Woche fest.</p>
         <div class="field">
           <label>Mein Fokus diese Woche</label>
-          <input type="text" id="modal-goal-focus" placeholder="z.B. Ruhe beim Abrufen" value="${lastGoal?.focus ? escapeAttr(lastGoal.focus) : ''}" />
+          <input type="text" id="modal-goal-focus" placeholder="z.B. 3-Stufen-Prinzip beim Abrufen" value="${lastGoal?.focus ? escapeAttr(lastGoal.focus) : ''}" />
         </div>
         <div class="field">
           <label>Mein Ziel für diese Woche</label>
           <input type="text" id="modal-goal-text" placeholder="z.B. Abruf auf 7/10 bringen" value="${lastGoal?.goal ? escapeAttr(lastGoal.goal) : ''}" />
         </div>
         <div class="field">
-          <label>Gewünschte Trainingstage (von 7)</label>
-          <input type="number" id="modal-goal-days" min="1" max="7" placeholder="z.B. 5" value="${lastGoal?.target_days || ''}" />
+          <label>Mein grösster Stolperstein diese Woche</label>
+          <input type="text" id="modal-goal-stolperstein" placeholder="z.B. Übungen nicht sauber auflösen" value="${lastGoal?.stolperstein ? escapeAttr(lastGoal.stolperstein) : ''}" />
         </div>
         <div class="modal-actions">
           <button class="primary-btn" id="modal-goal-save">Wochenziel speichern</button>
@@ -1057,11 +1057,10 @@ function renderWeeklyGoalModal(){
     const statusEl = document.getElementById("modal-goal-status");
     const focus = document.getElementById("modal-goal-focus").value.trim();
     const goal = document.getElementById("modal-goal-text").value.trim();
-    const daysRaw = document.getElementById("modal-goal-days").value;
-    const days = daysRaw ? Math.max(1, Math.min(7, parseInt(daysRaw, 10))) : null;
+    const stolperstein = document.getElementById("modal-goal-stolperstein").value.trim();
 
     statusEl.textContent = "Speichere …";
-    const { error } = await saveWeeklyGoal(focus, goal, days);
+    const { error } = await saveWeeklyGoal(focus, goal, stolperstein);
     if (error){
       statusEl.textContent = "Fehler: " + error.message;
       return;
@@ -1115,7 +1114,6 @@ function renderContent(){
   const stats = computeStats();
   const today = todayISO();
   const todaysEntry = currentEntries.find(e => e.entry_date === selectedDate) || {};
-  const goalTarget = currentWeekGoal?.target_days || null;
   const week = getWeekRange();
   const pastGoals = weeklyGoals.filter(g => g.week_start !== week.start);
 
@@ -1129,25 +1127,26 @@ function renderContent(){
       <div class="goal-grid">
         <div class="field">
           <label>Mein Fokus diese Woche</label>
-          <input type="text" id="goal-focus" placeholder="z.B. Ruhe beim Abrufen" value="${currentWeekGoal?.focus ? escapeAttr(currentWeekGoal.focus) : ''}" />
+          <input type="text" id="goal-focus" placeholder="z.B. 3-Stufen-Prinzip beim Abrufen" value="${currentWeekGoal?.focus ? escapeAttr(currentWeekGoal.focus) : ''}" />
         </div>
         <div class="field">
           <label>Mein Ziel für diese Woche</label>
           <input type="text" id="goal-text" placeholder="z.B. Abruf auf 7/10 bringen" value="${currentWeekGoal?.goal ? escapeAttr(currentWeekGoal.goal) : ''}" />
         </div>
         <div class="field">
-          <label>Gewünschte Trainingstage (von 7)</label>
-          <input type="number" id="goal-days" min="1" max="7" placeholder="z.B. 5" value="${goalTarget || ''}" />
+          <label>Mein grösster Stolperstein diese Woche</label>
+          <input type="text" id="goal-stolperstein" placeholder="z.B. Übungen nicht sauber auflösen" value="${currentWeekGoal?.stolperstein ? escapeAttr(currentWeekGoal.stolperstein) : ''}" />
         </div>
       </div>
       <div class="save-row">
         <button class="save-btn" id="goal-save-btn">Wochenziel speichern</button>
         <span class="save-status" id="goal-save-status"></span>
       </div>
-      ${currentWeekGoal?.focus || currentWeekGoal?.goal ? `
+      ${currentWeekGoal?.focus || currentWeekGoal?.goal || currentWeekGoal?.stolperstein ? `
         <div class="goal-display">
           ${currentWeekGoal.focus ? `<div><span class="goal-display-label">Fokus:</span> ${escapeHtml(currentWeekGoal.focus)}</div>` : ""}
           ${currentWeekGoal.goal ? `<div><span class="goal-display-label">Ziel:</span> ${escapeHtml(currentWeekGoal.goal)}</div>` : ""}
+          ${currentWeekGoal.stolperstein ? `<div><span class="goal-display-label">Stolperstein:</span> ${escapeHtml(currentWeekGoal.stolperstein)}</div>` : ""}
         </div>
       ` : ""}
       ${pastGoals.length ? `
@@ -1159,7 +1158,7 @@ function renderContent(){
                 <span class="goal-history-week">Woche vom ${formatDateDE(g.week_start)}</span>
                 ${g.focus ? `<span class="goal-history-detail"><strong>Fokus:</strong> ${escapeHtml(g.focus)}</span>` : ""}
                 ${g.goal ? `<span class="goal-history-detail"><strong>Ziel:</strong> ${escapeHtml(g.goal)}</span>` : ""}
-                ${g.target_days ? `<span class="goal-history-detail"><strong>Trainingstage-Ziel:</strong> ${g.target_days} von 7</span>` : ""}
+                ${g.stolperstein ? `<span class="goal-history-detail"><strong>Stolperstein:</strong> ${escapeHtml(g.stolperstein)}</span>` : ""}
               </li>
             `).join("")}
           </ul>
@@ -1282,13 +1281,12 @@ async function handleSaveWeeklyGoal(){
   const statusEl = document.getElementById("goal-save-status");
   const focus = document.getElementById("goal-focus").value.trim();
   const goal = document.getElementById("goal-text").value.trim();
-  const daysRaw = document.getElementById("goal-days").value;
-  const days = daysRaw ? Math.max(1, Math.min(7, parseInt(daysRaw, 10))) : null;
+  const stolperstein = document.getElementById("goal-stolperstein").value.trim();
 
   statusEl.textContent = "Speichere …";
   statusEl.className = "save-status";
 
-  const { error } = await saveWeeklyGoal(focus, goal, days);
+  const { error } = await saveWeeklyGoal(focus, goal, stolperstein);
 
   if (error){
     statusEl.textContent = "Fehler: " + error.message;
