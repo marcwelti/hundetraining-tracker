@@ -304,6 +304,12 @@
   }
 
   /* ---------- Selbstcheck-Liste ---------- */
+  .system-check-panel{ padding: 0; overflow: hidden; border: 2px solid var(--primary-dark); }
+  .system-check-header{ background: var(--primary-dark); padding: 24px 26px 20px; }
+  .system-check-header h2{ color: #fff; font-size: 21px; }
+  .system-check-header p.panel-sub{ color: rgba(255,255,255,0.8) !important; margin: 6px 0 0 !important; }
+  .system-check-header p.panel-sub:first-of-type{ margin-top: 8px !important; }
+  .system-check-body{ padding: 22px 26px 26px; }
   .system-check-list{ display:flex; flex-direction: column; gap: 8px; padding: 4px 4px 14px; }
   .system-check-complete-banner{
     margin: 4px 4px 14px; padding: 12px 16px; border-radius: 9px;
@@ -844,29 +850,33 @@ function renderSystemCheckSection(){
   const allDone = done === total;
   return `
     <section class="panel system-check-panel">
-      <h2>Fehler im System finden</h2>
-      <p class="panel-sub">Du solltest so schnell wie möglich bei allen Kästchen einen Haken setzen können.</p>
-      <p class="panel-sub">Falls du Fragen zu dieser Liste hast, kannst du sie mir sehr gerne im wöchentlichen Live-Call stellen.</p>
-      <details class="exercise-block">
-        <summary>
-          <span class="exercise-block-title">Checkliste anzeigen</span>
-          <span class="exercise-block-progress">${systemCheckBadgeText(done, total)}</span>
-        </summary>
-        <div class="system-check-complete-banner" style="${allDone ? '' : 'display:none;'}">Perfekt! Du hast alle Kästchen gesetzt – dein System läuft rund. 🎉</div>
-        <div class="system-check-list">
-          ${SYSTEM_CHECK_ITEMS.map((text, i) => {
-            const id = `check_${i + 1}`;
-            const checked = !!systemCheckProgress[id];
-            return `
-              <label class="system-check-item ${checked ? 'checked' : ''}" data-item-id="${id}">
-                <input type="checkbox" ${checked ? "checked" : ""} />
-                <span class="system-check-number">${i + 1}.</span>
-                <span class="system-check-text">${escapeHtml(text)}</span>
-              </label>
-            `;
-          }).join("")}
-        </div>
-      </details>
+      <div class="system-check-header">
+        <h2>🔍 Fehler im System finden</h2>
+        <p class="panel-sub">Du solltest so schnell wie möglich bei allen Kästchen einen Haken setzen können.</p>
+        <p class="panel-sub">Falls du Fragen zu dieser Liste hast, kannst du sie mir sehr gerne im wöchentlichen Live-Call stellen.</p>
+      </div>
+      <div class="system-check-body">
+        <details class="exercise-block">
+          <summary>
+            <span class="exercise-block-title">Checkliste anzeigen</span>
+            <span class="exercise-block-progress">${systemCheckBadgeText(done, total)}</span>
+          </summary>
+          <div class="system-check-complete-banner" style="${allDone ? '' : 'display:none;'}">Perfekt! Du hast alle Kästchen gesetzt – dein System läuft rund. 🎉</div>
+          <div class="system-check-list">
+            ${SYSTEM_CHECK_ITEMS.map((text, i) => {
+              const id = `check_${i + 1}`;
+              const checked = !!systemCheckProgress[id];
+              return `
+                <label class="system-check-item ${checked ? 'checked' : ''}" data-item-id="${id}">
+                  <input type="checkbox" ${checked ? "checked" : ""} />
+                  <span class="system-check-number">${i + 1}.</span>
+                  <span class="system-check-text">${escapeHtml(text)}</span>
+                </label>
+              `;
+            }).join("")}
+          </div>
+        </details>
+      </div>
     </section>
   `;
 }
