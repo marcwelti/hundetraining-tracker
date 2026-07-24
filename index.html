@@ -373,6 +373,22 @@
     font-weight: 600; font-size: 14px;
   }
 
+  .reflexion-history{ margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line); }
+  .reflexion-history summary{
+    cursor: pointer; font-size: 13px; font-weight: 700; color: var(--primary-dark);
+    list-style: none;
+  }
+  .reflexion-history summary::-webkit-details-marker{ display:none; }
+  .reflexion-history summary::before{ content: "▸ "; color: var(--ink-soft); }
+  .reflexion-history[open] summary::before{ content: "▾ "; }
+  .reflexion-history-list{ list-style:none; margin: 12px 0 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+  .reflexion-history-list li{
+    background: #FFFDF9; border: 1px solid var(--line); border-radius: 8px;
+    padding: 10px 13px; font-size: 13px;
+  }
+  .reflexion-history-date{ display:block; font-weight: 700; color: var(--ink); font-size: 12px; margin-bottom: 4px; }
+  .reflexion-history-text{ color: var(--ink-soft); line-height: 1.5; white-space: pre-wrap; }
+
 
   .save-row{ display:flex; align-items:center; gap: 14px; }
   .save-row .save-btn{
@@ -1264,6 +1280,7 @@ function renderContent(){
         <span class="save-status" id="save-status"></span>
       </div>
       <div class="save-confirmation" id="save-confirmation" style="display:none;">Training gespeichert. Konsequenz entsteht durch Wiederholung.</div>
+      ${renderReflexionHistory()}
     </section>
 
     <section class="panel">
@@ -1457,6 +1474,18 @@ async function saveEntry(){
   renderChart14();
   document.querySelector(".table-scroll").innerHTML = renderHistoryTable();
   updateStatCardsOnly();
+
+  const reflexionHistoryEl = document.querySelector(".reflexion-history");
+  const reflexionHistoryHtml = renderReflexionHistory();
+  if (reflexionHistoryEl){
+    if (reflexionHistoryHtml){
+      reflexionHistoryEl.outerHTML = reflexionHistoryHtml;
+    } else {
+      reflexionHistoryEl.remove();
+    }
+  } else if (reflexionHistoryHtml) {
+    confirmEl.insertAdjacentHTML("afterend", reflexionHistoryHtml);
+  }
 }
 
 function updateStatCardsOnly(){
@@ -1545,6 +1574,28 @@ function renderCategoryCell(entry, c){
     return `<span class="dot ${entry[c.key] ? 'yes' : 'no'}"></span>`;
   }
   return `<span class="dot ${entry[c.key] ? 'yes' : 'no'}"></span>`;
+}
+
+function renderReflexionHistory(){
+  const withReflexion = currentEntries
+    .filter(e => e.reflexion && e.reflexion.trim())
+    .sort((a, b) => b.entry_date.localeCompare(a.entry_date));
+
+  if (!withReflexion.length) return "";
+
+  return `
+    <details class="reflexion-history">
+      <summary>Bisherige Einträge (${withReflexion.length})</summary>
+      <ul class="reflexion-history-list">
+        ${withReflexion.map(e => `
+          <li>
+            <span class="reflexion-history-date">${formatDateDE(e.entry_date)}</span>
+            <span class="reflexion-history-text">${escapeHtml(e.reflexion)}</span>
+          </li>
+        `).join("")}
+      </ul>
+    </details>
+  `;
 }
 
 function renderHistoryTable(){
