@@ -248,6 +248,57 @@
   .goal-history-detail{ color: var(--ink-soft); }
   .goal-history-detail strong{ color: var(--ink); font-weight: 600; }
 
+  /* ---------- Übungskatalog ---------- */
+  .exercise-block{
+    border: 1px solid var(--line); border-radius: 11px;
+    margin-bottom: 12px; overflow: hidden; background: #FFFDF9;
+  }
+  .exercise-block:last-child{ margin-bottom: 0; }
+  .exercise-block summary{
+    cursor: pointer; list-style: none; padding: 14px 18px;
+    display:flex; align-items:center; justify-content: space-between; gap: 12px;
+    background: var(--surface); flex-wrap: wrap;
+  }
+  .exercise-block summary::-webkit-details-marker{ display:none; }
+  .exercise-block-title{ font-weight: 700; font-size: 14.5px; color: var(--ink); }
+  .exercise-block-title::before{ content: "▸ "; color: var(--ink-soft); }
+  .exercise-block[open] .exercise-block-title::before{ content: "▾ "; }
+  .exercise-block-progress{
+    font-size: 12px; font-weight: 600; color: var(--ink-soft);
+    background: var(--primary-soft); padding: 3px 10px; border-radius: 999px;
+    white-space: nowrap;
+  }
+  .exercise-list{ padding: 4px 16px 14px; }
+  .exercise-row{
+    display:flex; align-items:center; justify-content: space-between; gap: 16px;
+    padding: 12px 4px; border-bottom: 1px solid var(--line); flex-wrap: wrap;
+  }
+  .exercise-row:last-child{ border-bottom: none; }
+  .exercise-text{ font-size: 13.5px; line-height: 1.45; color: var(--ink); flex: 1 1 320px; min-width: 220px; }
+  .exercise-number{ font-family: var(--font-mono); font-weight: 700; color: var(--ink-soft); margin-right: 3px; }
+
+  .exercise-lever{
+    display:flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden;
+    flex-shrink: 0;
+  }
+  .lever-btn{
+    font-family: var(--font-body); font-size: 11.5px; font-weight: 600;
+    padding: 8px 12px; border: none; background: var(--surface); color: var(--ink-soft);
+    cursor: pointer; transition: all .15s ease; border-right: 1px solid var(--line);
+    white-space: nowrap;
+  }
+  .lever-btn:last-child{ border-right: none; }
+  .lever-btn:hover{ background: var(--primary-soft); }
+  .lever-btn.active[data-level="1"]{ background: var(--line); color: var(--ink); }
+  .lever-btn.active[data-level="2"]{ background: var(--accent-soft); color: #7A5417; }
+  .lever-btn.active[data-level="3"]{ background: #E9F3E6; color: #3C6B33; }
+
+  @media (max-width: 700px){
+    .exercise-row{ flex-direction: column; align-items: stretch; }
+    .exercise-lever{ width: 100%; }
+    .lever-btn{ flex: 1; padding: 10px 6px; font-size: 11px; }
+  }
+
   /* ---------- Wochenziel-Popup ---------- */
   .modal-overlay{
     position: fixed; inset: 0; background: rgba(15,13,11,0.55);
@@ -398,6 +449,176 @@ const CATEGORIES = [
 ];
 
 // Bewertet eine eingegebene Wiederholungszahl anhand der Richtwerte der Kategorie
+// ============================================================
+// ÜBUNGSKATALOG — vollständige Übungsliste aus dem Trainingsplan
+// ============================================================
+const EXERCISE_BLOCKS = [
+  {
+    key: "sitz", title: "Sitz bleiben",
+    exercises: [
+      "3 Sek. ohne Distanz warten, dann „Frei“",
+      "5 Sek. ohne Distanz warten, dann „Frei“",
+      "10 Sek. ohne Distanz warten, dann „Frei“",
+      "3 Schritte rückwärts weglaufen, 5 Sek. warten, „Frei“",
+      "5 Schritte rückwärts weglaufen, 5 Sek. warten, „Frei“",
+      "5 Schritte rückwärts weglaufen, wieder zum Hund hin, 3 Sek. warten, wieder 5 Schritte rückwärts weglaufen, „Frei“",
+      "5 Schritte rückwärts weglaufen, 3 Sek. in die Hocke gehen, wieder aufrecht werden, „Frei“",
+      "5 Schritte rückwärts weglaufen, wieder zum Hund hin, 3 Sek. warten, umkehren und 5 Schritte normal weglaufen, „Frei“",
+      "5 Schritte normal weglaufen, wieder zum Hund hin, 3 Sek. warten, umkehren und 5 Schritte wegjoggen, „Frei“",
+      "10 Schritte normal weglaufen, 5 Sek. warten, „Frei“",
+      "10 Schritte wegjoggen, 5 Sek. warten, „Frei“",
+      "5 Schritte normal weglaufen, am Hund 5 Schritte vorbeilaufen, wieder zurück an den Ursprungsort, „Frei“",
+      "5 Schritte normal weglaufen, am Hund 5 Schritte vorbeijoggen, wieder zurück an den Ursprungsort joggen, „Frei“",
+      "20 Schritte weglaufen, 5 Sek. warten, „Frei“",
+      "30 Schritte weglaufen, 5 Sek. warten, „Frei“",
+      "40 Schritte weglaufen, 5 Sek. warten, „Frei“",
+      "50 Schritte weglaufen, 5 Sek. warten, „Frei“",
+      "3 Sek. ausser Sicht gehen, zurückkommen, „Frei“",
+      "5 Sek. ausser Sicht gehen, zurückkommen, „Frei“",
+      "10 Sek. ausser Sicht gehen, zurückkommen, „Frei“",
+      "30 Sek. ausser Sicht gehen, zurückkommen, „Frei“",
+      "1 Min. ausser Sicht gehen, zurückkommen, „Frei“",
+      "3 Min. ausser Sicht gehen, zurückkommen, „Frei“",
+      "5–10 Schritte normal weglaufen, Spielzeug aus der Tasche nehmen, Arm ausstrecken, Spielzeug fallen lassen, wieder aufheben, in Tasche versorgen, „Frei“",
+      "5–10 Schritte normal weglaufen, Spielzeug aus der Tasche nehmen, Spielzeug 1–3 Meter wegwerfen, selbst holen, in Tasche versorgen, „Frei“",
+      "5–10 Schritte normal weglaufen, Spielzeug aus der Tasche nehmen, Spielzeug 5–10 Meter wegwerfen, selbst holen, in Tasche versorgen, „Frei“",
+      "5–10 Schritte normal weglaufen, Spielzeug aus der Tasche nehmen, Spielzeug am Hund vorbeiwerfen, selbst holen, in Tasche versorgen, „Frei“",
+      "2 Schritte rückwärts weglaufen, Futter aus der Tasche nehmen, Futter vor den Hund hinlegen, wieder aufheben, in Tasche versorgen, „Frei“",
+      "5 Schritte weglaufen, eine andere Person versucht, den Hund aus dem Sitz zu locken, „Frei“",
+      "5 Schritte weglaufen, eine andere Person versucht, den Hund mit Spielzeug aus dem Sitz zu locken, „Frei“",
+      "5 Schritte weglaufen, eine andere Person versucht, den Hund mit Futter aus dem Sitz zu locken, „Frei“",
+      "Ausser Sicht gehen, eine andere Person versucht, den Hund mit oder ohne Spielzeug/Futter aus dem Sitz zu locken, wieder zum Hund hingehen, „Frei“",
+      "Hund bleibt im Sitz, wenn sich Familienmitglieder entfernen",
+      "Hund bleibt im Sitz, wenn man eine Leine entfernt oder wechselt",
+      "Hund bleibt im Sitz bei Joggern",
+      "Hund bleibt im Sitz bei Fahrrädern",
+      "Hund bleibt im Sitz bei Auto/Töff/Trotti etc.",
+      "Hund bleibt im Sitz bei Pferden",
+      "Hund bleibt im Sitz bei Katzen/Wild",
+      "Hund bleibt im Sitz bei Hunden",
+      "Ausser Sicht gehen, Hunde gehen vorbei, wieder zum Hund hingehen, „Frei“",
+    ],
+  },
+  {
+    key: "platz", title: "Platz bleiben",
+    exercises: [
+      "Alle Sitzübungen gelten genauso im Platz",
+    ],
+  },
+  {
+    key: "hundebett", title: "Hundebett bleiben",
+    exercises: [
+      "3 Sek. ohne Distanz warten, dann „Frei“",
+      "5 Sek. ohne Distanz warten, dann „Frei“",
+      "10 Sek. ohne Distanz warten, dann „Frei“",
+      "3 Schritte rückwärts weglaufen, 5 Sek. warten, „Frei“",
+      "5 Schritte rückwärts weglaufen, 5 Sek. warten, „Frei“",
+      "10 Schritte normal weglaufen, 5 Sek. warten, „Frei“",
+      "10 Sek. warten lassen, „Frei“",
+      "20 Sek. warten lassen, „Frei“",
+      "30 Sek. warten lassen, „Frei“",
+      "1 Min. warten lassen, „Frei“",
+      "3 Min. warten lassen, „Frei“",
+      "5 Min. warten lassen, „Frei“",
+      "10 Min. warten lassen, „Frei“",
+      "Raum verlassen für 3 Sek., wieder zurückkommen, „Frei“",
+      "Raum verlassen für 5 Sek., wieder zurückkommen, „Frei“",
+      "Raum verlassen für 10 Sek., wieder zurückkommen, „Frei“",
+      "Raum verlassen für 30 Sek., wieder zurückkommen, „Frei“",
+      "Raum verlassen für 1 Min., wieder zurückkommen, „Frei“",
+      "Raum verlassen für 5 Min., wieder zurückkommen, „Frei“",
+      "Hund bleibt, wenn Familienmitglieder nach Hause kommen",
+      "Hund bleibt, wenn es an der Türe klingelt",
+      "Hund bleibt, wenn Besuch reinkommt; Besuch kann sich hinsetzen, wieder aufstehen und sich frei bewegen",
+      "Hund bleibt, wenn Besuch reinkommt und den Hund (ohne ihn zu berühren) begrüsst und anspricht",
+      "Hund bleibt, wenn Besuch mit einem Hund reinkommt; Besuch und Hund können sich frei bewegen",
+    ],
+  },
+  {
+    key: "auto", title: "Auto bleiben",
+    exercises: [
+      "3 Sek. ohne Distanz warten, dann „Frei“",
+      "5 Sek. ohne Distanz warten, dann „Frei“",
+      "10 Sek. ohne Distanz warten, dann „Frei“",
+      "3 Schritte rückwärts weglaufen, 5 Sek. warten, „Frei“",
+      "5 Schritte rückwärts weglaufen, 5 Sek. warten, „Frei“",
+      "10 Schritte rückwärts weglaufen, 5 Sek. warten, „Frei“",
+      "10 Schritte normal weglaufen, 5 Sek. warten, „Frei“",
+      "1× um das Auto herumlaufen, „Frei“",
+      "2× um das Auto herumlaufen, „Frei“",
+      "3× um das Auto herumlaufen, „Frei“",
+      "Eine andere Person lockt den Hund mit Futter/Spielzeug",
+      "Hund bleibt im Auto, während ein anderer Hund vorbeiläuft",
+    ],
+  },
+  {
+    key: "abruf", title: "Abruf",
+    exercises: [
+      "Hund im Sitz, 5–10 m Distanz, Abrufen mit „Hier“ aus dem Sitz",
+      "Ohne Ablenkung auf dem Weg (Wald/Feld)",
+      "Ohne Ablenkung auf der Wiese",
+      "Mit Ablenkung – laufender Mensch",
+      "Mit Ablenkung – Jogger",
+      "Mit Ablenkung – Fahrrad",
+      "Mit Ablenkung – Pferd",
+      "Mit Ablenkung – Vögel",
+      "Hund im Sitz, Familienmitglieder laufen 20–30 Schritte weg, Hund frei geben und gleich wieder mit „Hier“ abrufen",
+      "Hund im Sitz, Spielzeug 5 Schritte entfernt hinlegen, nochmals 5 Schritte weiterlaufen, dann mit „Hier“ am Spielzeug vorbeirufen",
+      "Hund im Sitz, Spielzeug ca. 10–20 m wegwerfen, Hund frei geben, dann mit „Hier“ abrufen, bevor der Hund beim Spielzeug ist",
+      "Hund im Sitz, Futter 5 Schritte entfernt hinlegen, nochmals 5 Schritte weiterlaufen, dann mit „Hier“ am Futter vorbeirufen",
+      "Hund im Sitz, 5–10 Schritte weglaufen, Futter vor oder neben sich hinlegen, dann mit „Hier“ abrufen",
+      "Hund im Sitz, 10 Schritte weglaufen, auf halber Distanz steht eine Person mit Futter, dann mit „Hier“ an der Person vorbeirufen",
+      "Mit Ablenkung – entgegenkommender Hund",
+      "Mit Ablenkung – Katze/Wild etc.",
+      "Aus dem Spiel mit einem anderen Hund",
+    ],
+  },
+  {
+    key: "leinenlaufen", title: "Leinenlaufen",
+    exercises: [
+      "Mit Leine – Laufen, Stopp, Laufen, Stopp",
+      "Mit Leine – Tempowechsel: langsam / schnell / langsam / schnell",
+      "Mit Schleppleine – Hund im Sitz, ohne Hund loslaufen, nach 3 Schritten ins Fuss rufen, sobald Hund auf Höhe ist eine Kurve gegen den Hund machen, ein paar Schritte weiterlaufen, stoppen, wieder Sitz",
+      "Mit Schleppleine – Hund im Sitz, ohne Hund loslaufen, nach 3 Schritten ins Fuss rufen, sobald Hund auf Höhe ist eine Kurve weg vom Hund machen, ein paar Schritte weiterlaufen, stoppen, wieder Sitz",
+      "Mit Schleppleine – Hund im Sitz, ohne Hund loslaufen, nach 3 Schritten ins Fuss rufen, sobald Hund auf Höhe ist stoppen",
+      "Mit Schleppleine – Hund ist im Freimodus ca. 10 m vorne, direkt in Laufrichtung ins Fuss rufen, Hund fädelt ein",
+      "Mit Leine – ohne Ablenkung auf dem Weg (Wald/Feld)",
+      "Ohne Leine – ohne Ablenkung auf dem Weg (Wald/Feld)",
+      "Mit Leine – ohne Ablenkung auf der Wiese",
+      "Ohne Leine – ohne Ablenkung auf der Wiese",
+      "Am Fahrrad/Kinderwagen/Pferd (alles optional)",
+      "Mit Leine an Menschen vorbei",
+      "Mit Leine an Joggern/Pferden/Fahrrädern vorbei",
+      "Mit oder ohne Leine an Futter vorbei",
+      "Mit oder ohne Leine über verstreutes Futter laufen",
+      "Mit oder ohne Leine an einem Menschen vorbei, der mit Futter lockt",
+      "Mit oder ohne Leine an einem Menschen vorbei, der mit Spielzeug lockt",
+      "Mit Leine an Hunden vorbei",
+      "Mit Leine an Katzen/Wild etc. vorbei",
+      "Ohne Leine an Menschen vorbei",
+      "Ohne Leine an Joggern/Pferden/Fahrrädern vorbei",
+      "Ohne Leine an Hunden vorbei",
+      "Ohne Leine an Katzen/Wild etc. vorbei",
+    ],
+  },
+  {
+    key: "tabu", title: "Tabu",
+    exercises: [
+      "Hund ist im Freimodus, Futter wird während des Laufens vor den Hund geworfen",
+      "Hund ist zu Hause im Freimodus, Futter auf den Boden legen, weitergehen und Futter im Auge behalten, Futter wieder wegnehmen, Zeit steigern",
+      "Hund ist zu Hause im Freimodus, Futter auf den Boden legen, in einen anderen Raum gehen, zurückkommen, Futter wieder wegnehmen, Zeit steigern",
+      "Hund bleibt im Auto oder zu Hause, Futter ohne Hund alle 20–50 m hinlegen, dann Hund holen und am Futter im Freimodus vorbeilaufen",
+      "Hund ist im Freimodus, eine andere Person versucht, den Hund zu füttern, Hund nimmt nichts, ohne dass man es erlaubt",
+    ],
+  },
+];
+
+const EXERCISE_LEVEL_LABELS = {
+  1: "In der Anfangsphase",
+  2: "Läuft schon gut",
+  3: "Ziel erreicht",
+};
+
 function repLevel(catKey, reps){
   if (reps === null || reps === undefined || reps === "") return null;
   const cat = CATEGORIES.find(c => c.key === catKey);
@@ -452,6 +673,86 @@ function renderMotivationBanner(categoryReps){
       <span class="motivation-text">${status.text}</span>
     </div>
   `;
+}
+
+function exerciseId(blockKey, index){
+  return `${blockKey}_${String(index + 1).padStart(2, "0")}`;
+}
+
+function countExercisesDone(block){
+  return block.exercises.filter((_, i) => exerciseProgress[exerciseId(block.key, i)] === 3).length;
+}
+
+function renderExerciseCatalog(){
+  return `
+    <section class="panel exercise-catalog-panel">
+      <h2>Meine Übungsübersicht</h2>
+      <p class="panel-sub">Verschiebe den Regler bei jeder Übung: in der Anfangsphase, läuft schon gut, oder Ziel erreicht.</p>
+      ${EXERCISE_BLOCKS.map(block => renderExerciseBlock(block)).join("")}
+    </section>
+  `;
+}
+
+function renderExerciseBlock(block){
+  const total = block.exercises.length;
+  const done = countExercisesDone(block);
+  return `
+    <details class="exercise-block" data-block-key="${block.key}">
+      <summary>
+        <span class="exercise-block-title">${block.title}</span>
+        <span class="exercise-block-progress">${done} von ${total} Übungen abgeschlossen</span>
+      </summary>
+      <div class="exercise-list">
+        ${block.exercises.map((text, i) => renderExerciseRow(block.key, i, text)).join("")}
+      </div>
+    </details>
+  `;
+}
+
+function renderExerciseRow(blockKey, index, text){
+  const id = exerciseId(blockKey, index);
+  const level = exerciseProgress[id] || 1;
+  return `
+    <div class="exercise-row" data-exercise-id="${id}">
+      <div class="exercise-text"><span class="exercise-number">${index + 1}.</span> ${escapeHtml(text)}</div>
+      <div class="exercise-lever" role="group" aria-label="Fortschritt: ${escapeAttr(text)}">
+        <button type="button" class="lever-btn ${level === 1 ? 'active' : ''}" data-level="1">In der Anfangsphase</button>
+        <button type="button" class="lever-btn ${level === 2 ? 'active' : ''}" data-level="2">Läuft schon gut</button>
+        <button type="button" class="lever-btn ${level === 3 ? 'active' : ''}" data-level="3">Ziel erreicht</button>
+      </div>
+    </div>
+  `;
+}
+
+function updateExerciseBlockBadge(blockEl){
+  const key = blockEl.dataset.blockKey;
+  const block = EXERCISE_BLOCKS.find(b => b.key === key);
+  if (!block) return;
+  const badge = blockEl.querySelector(".exercise-block-progress");
+  if (badge) badge.textContent = `${countExercisesDone(block)} von ${block.exercises.length} Übungen abgeschlossen`;
+}
+
+function wireExerciseCatalog(){
+  const panel = document.querySelector(".exercise-catalog-panel");
+  if (!panel) return;
+
+  panel.addEventListener("click", async (e) => {
+    const btn = e.target.closest(".lever-btn");
+    if (!btn) return;
+
+    const row = btn.closest(".exercise-row");
+    const blockEl = btn.closest(".exercise-block");
+    const id = row.dataset.exerciseId;
+    const level = parseInt(btn.dataset.level, 10);
+
+    row.querySelectorAll(".lever-btn").forEach(b => b.classList.toggle("active", b === btn));
+    updateExerciseBlockBadge(blockEl);
+
+    const { error } = await saveExerciseLevel(id, level);
+    if (error){
+      console.error("Fehler beim Speichern des Übungsfortschritts:", error.message);
+    }
+  });
 }
 
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -525,6 +826,7 @@ let authMode = "login"; // or "signup"
 let weeklyGoals = []; // Verlauf aller bisherigen Wochenziele (neueste zuerst)
 let currentWeekGoal = null; // Ziel für die aktuell laufende Kalenderwoche, falls vorhanden
 let weeklyGoalModalDismissed = false; // nur für die aktuelle Sitzung ("Später")
+let exerciseProgress = {}; // Map: exercise_id -> Stufe (1, 2 oder 3)
 let reflexionText = "";
 
 /* =========================================================
@@ -629,6 +931,7 @@ async function renderApp(){
 
   await loadEntries();
   await loadWeeklyGoals();
+  await loadExerciseProgress();
   renderContent();
   renderWeeklyGoalModal();
 }
@@ -646,6 +949,29 @@ async function loadEntries(){
     return;
   }
   currentEntries = data || [];
+}
+
+async function loadExerciseProgress(){
+  const { data, error } = await sb
+    .from("exercise_progress")
+    .select("exercise_id, level")
+    .eq("user_id", currentUser.id);
+
+  exerciseProgress = {};
+  if (!error && data){
+    data.forEach(row => { exerciseProgress[row.exercise_id] = row.level; });
+  }
+}
+
+async function saveExerciseLevel(exerciseId, level){
+  exerciseProgress[exerciseId] = level; // optimistisch sofort übernehmen
+  const { error } = await sb
+    .from("exercise_progress")
+    .upsert(
+      { user_id: currentUser.id, exercise_id: exerciseId, level, updated_at: new Date().toISOString() },
+      { onConflict: "user_id,exercise_id" }
+    );
+  return { error };
 }
 
 async function loadWeeklyGoals(){
@@ -895,6 +1221,8 @@ function renderContent(){
       </div>
     </section>
 
+    ${renderExerciseCatalog()}
+
     <section class="panel">
       <h2>Training eintragen</h2>
       <p class="panel-sub">Wähle das Datum und hake ab, was ihr geübt habt.</p>
@@ -930,6 +1258,7 @@ function renderContent(){
   `;
 
   renderChecklist(todaysEntry);
+  wireExerciseCatalog();
   reflexionText = todaysEntry.reflexion || "";
   document.getElementById("reflexion-input").value = reflexionText;
   document.getElementById("reflexion-input").oninput = (e) => {
