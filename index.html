@@ -184,6 +184,44 @@
   .guide-blue h3{ color: #2C5680; }
 
   .weekly-goal-panel{ background: var(--accent-soft); border-color: #E4C88C; }
+
+  /* ---------- Motivations-Banner ---------- */
+  .motivation-banner{
+    display:flex; align-items:center; gap: 12px;
+    padding: 14px 20px; border-radius: 12px; margin-bottom: 22px;
+    border: 1px solid var(--line); background: var(--surface);
+  }
+  .motivation-banner .motivation-paw{ width: 26px; height: 26px; flex-shrink: 0; display:flex; }
+  .motivation-banner .motivation-paw svg{
+    width: 100%; height: 100%;
+    transform-origin: 50% 85%;
+    animation: pawWag 1.6s ease-in-out infinite;
+  }
+  .motivation-banner .motivation-text{ font-size: 14px; font-weight: 600; line-height: 1.4; }
+
+  .motivation-banner.mood-start{ background: var(--primary-soft); border-color: var(--primary-soft); }
+  .motivation-banner.mood-start .motivation-paw svg{ fill: var(--primary); }
+  .motivation-banner.mood-start .motivation-text{ color: var(--primary-dark); }
+
+  .motivation-banner.mood-low{ background: #FBEAE4; border-color: #F0C7B8; }
+  .motivation-banner.mood-low .motivation-paw svg{ fill: #A13F27; }
+  .motivation-banner.mood-low .motivation-text{ color: #8A3E28; }
+
+  .motivation-banner.mood-good{ background: #FBF1DC; border-color: #E4C88C; }
+  .motivation-banner.mood-good .motivation-paw svg{ fill: #8A5A17; }
+  .motivation-banner.mood-good .motivation-text{ color: #7A5417; }
+
+  .motivation-banner.mood-high{ background: #E9F3E6; border-color: #C9E3C2; }
+  .motivation-banner.mood-high .motivation-paw svg{ fill: #3C6B33; }
+  .motivation-banner.mood-high .motivation-text{ color: #315A29; }
+
+  @keyframes pawWag{
+    0%, 100% { transform: rotate(-10deg); }
+    50% { transform: rotate(10deg); }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .motivation-banner .motivation-paw svg{ animation: none; }
+  }
   .goal-grid{ display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 16px; }
   @media (max-width: 760px){ .goal-grid{ grid-template-columns: 1fr; } }
   .weekly-goal-panel .field input{ background: #FFFDF9; }
@@ -370,6 +408,50 @@ function repLevel(catKey, reps){
   if (r < t.zuWenig) return { level: "low", label: "Zu wenig" };
   if (t.gut !== undefined && r < t.gut) return { level: "mid", label: "Gut" };
   return { level: "high", label: "Sehr gut" };
+}
+
+// Bewertet den aktuellen Trainingsstand über alle Wiederholungs-Kategorien hinweg
+// und liefert eine motivierende, ehrliche Rückmeldung für den Kunden.
+function computeMotivationStatus(categoryReps){
+  const tracked = CATEGORIES.filter(c => c.trackReps && categoryReps[c.key] && categoryReps[c.key].daysWithReps > 0);
+
+  if (!tracked.length){
+    return {
+      mood: "start",
+      text: "Trag dein erstes Training mit Wiederholungszahlen ein – so siehst du sofort, ob es genug ist.",
+    };
+  }
+
+  const levels = tracked.map(c => repLevel(c.key, categoryReps[c.key].avgReps)?.level).filter(Boolean);
+  const hasLow = levels.includes("low");
+  const allHigh = levels.length && levels.every(l => l === "high");
+
+  if (hasLow){
+    return {
+      mood: "low",
+      text: "Bei ein paar Übungen liegt ihr noch unter dem Richtwert. Kein Grund zur Sorge – kleine Schritte summieren sich. Bleib dran!",
+    };
+  }
+  if (allHigh){
+    return {
+      mood: "high",
+      text: "Starke Leistung! Ihr übt über dem Richtwert – genau richtig, um Fortschritte zu erzielen.",
+    };
+  }
+  return {
+    mood: "good",
+    text: "Ihr übt genau im empfohlenen Rahmen – weiter so, das bringt euch voran!",
+  };
+}
+
+function renderMotivationBanner(categoryReps){
+  const status = computeMotivationStatus(categoryReps);
+  return `
+    <div class="motivation-banner mood-${status.mood}">
+      <span class="motivation-paw">${pawSVG("")}</span>
+      <span class="motivation-text">${status.text}</span>
+    </div>
+  `;
 }
 
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -709,6 +791,8 @@ function renderContent(){
 
   const content = document.getElementById("content");
   content.innerHTML = `
+    ${renderMotivationBanner(stats.categoryReps)}
+
     <section class="panel weekly-goal-panel">
       <h2>Mein Wochenziel</h2>
       <p class="panel-sub">Woche vom ${formatDateDE(week.start)} bis ${formatDateDE(week.end)}.</p>
@@ -1028,6 +1112,10 @@ async function saveEntry(){
 function updateStatCardsOnly(){
   const stats = computeStats();
   const goalTarget = currentWeekGoal?.target_days || null;
+
+  const banner = document.querySelector(".motivation-banner");
+  if (banner) banner.outerHTML = renderMotivationBanner(stats.categoryReps);
+
   const grid = document.querySelector(".stats-grid-top");
   if (grid){
     grid.innerHTML = `
